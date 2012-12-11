@@ -8,6 +8,9 @@ module Travis
           repo = find || create
           repo.update_attributes(params)
           repo
+        rescue ActiveRecord::RecordInvalid
+          Travis.logger.error("Failed to create repository with params: #{params.inspect}")
+          raise
         end
 
         private
