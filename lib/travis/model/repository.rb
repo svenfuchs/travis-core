@@ -77,7 +77,9 @@ class Repository < ActiveRecord::Base
       elsif params.key?(:slug)
         by_slug(params[:slug]).first
       elsif params.key?(:name) && params.key?(:owner_name)
-        where(params.slice(:name, :owner_name)).first
+        result = where(params.slice(:name, :owner_name)).first
+        Travis.logger.info("Repository find_by result for #{params.slice(:name, :owner_name)}: #{result.inspect}")
+        result
       end
     end
 
