@@ -140,6 +140,7 @@ class Build < ActiveRecord::Base
   before_create do
     self.number = repository.builds.next_number
     self.previous_state = last_state_on_branch
+    p self
     self.event_type = request.event_type
     expand_matrix
   end
