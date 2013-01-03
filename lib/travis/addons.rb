@@ -9,6 +9,7 @@ module Travis
     autoload :Pusher,       'travis/addons/pusher'
     autoload :Util,         'travis/addons/util'
     autoload :Webhook,      'travis/addons/webhook'
+    autoload :Librato,      'travis/addons/librato'
 
     class << self
       def register
