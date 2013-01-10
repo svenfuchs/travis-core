@@ -754,7 +754,6 @@ ALTER SEQUENCE tokens_id_seq OWNED BY tokens.id;
 CREATE TABLE urls (
     id integer NOT NULL,
     url character varying(255),
-    code character varying(255),
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
@@ -1511,6 +1510,8 @@ INSERT INTO schema_migrations (version) VALUES ('20121222140200');
 INSERT INTO schema_migrations (version) VALUES ('20121223162300');
 
 INSERT INTO schema_migrations (version) VALUES ('20130107165057');
+
+INSERT INTO schema_migrations (version) VALUES ('20130110135300');
 
 INSERT INTO schema_migrations (version) VALUES ('20130115125836');
 
