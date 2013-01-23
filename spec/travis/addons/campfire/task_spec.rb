@@ -9,6 +9,7 @@ describe Travis::Addons::Campfire::Task do
   let(:payload) { Travis::Api.data(build, for: 'event', version: 'v0') }
 
   before do
+    p payload
     subject.any_instance.stubs(:http).returns(client)
     Travis::Features.stubs(:active?).returns(true)
   end

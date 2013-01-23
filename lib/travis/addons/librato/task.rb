@@ -1,6 +1,6 @@
 module Travis
   module Addons
-    module LibratoAnnotations
+    module Librato
       class Task < Travis::Task
         def targets
           params[:targets]
@@ -15,9 +15,13 @@ module Travis
         end
 
         def store_annotation(target)
-          http.post(annotation_url(target)) do |request|
-            r.body = MultiJson.encode(annotation_payload)
-            r.headers['Content-Type'] = 'application/json'
+          response = http.post(annotation_url(target)) do |request|
+            request.body = MultiJson.encode(annotation_payload)
+            request.headers['Content-Type'] = 'application/json'
+          end
+
+          if not response.success?
+            Travis.logger.warn("[librato-annotations] Couldn't notify #{target} for email #{config[:email]} for #{repository[:slug]}")
           end
         end
 
@@ -27,7 +31,7 @@ module Travis
 
         def annotation_payload
           @annotation_payload ||= {
-            title: "Travis build #{build[:number]} #{build_result}",
+            title: "Travis CI: Build ##{build[:number]} #{build_result}",
             description: "Commit #{commit[:sha][0..6]} by #{commit[:author_email]}.",
             source: 'travisci',
             links: [
@@ -42,6 +46,10 @@ module Travis
               }
             ]
           }
+        end
+
+        def build_url
+          "#{Travis.config.http_host}/#{repository[:slug]}/builds/#{build[:id]}"
         end
 
         def build_result
