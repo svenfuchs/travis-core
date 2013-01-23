@@ -11,12 +11,14 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20121125122701) do
+ActiveRecord::Schema.define(:version => 20130115145728) do
 
   create_table "artifact_parts", :force => true do |t|
-    t.integer "artifact_id"
-    t.string  "content"
-    t.integer "number"
+    t.integer  "artifact_id"
+    t.text     "content"
+    t.integer  "number"
+    t.boolean  "final"
+    t.datetime "created_at"
   end
 
   add_index "artifact_parts", ["artifact_id", "number"], :name => "index_artifact_parts_on_artifact_id_and_number"
@@ -243,6 +245,7 @@ ActiveRecord::Schema.define(:version => 20121125122701) do
     t.string   "locale"
     t.boolean  "is_syncing"
     t.datetime "synced_at"
+    t.text     "github_scopes"
   end
 
   add_index "users", ["github_id"], :name => "index_users_on_github_id"
@@ -257,8 +260,11 @@ ActiveRecord::Schema.define(:version => 20121125122701) do
     t.text     "payload"
     t.text     "last_error"
     t.string   "queue"
+    t.string   "full_name"
   end
 
+  add_index "workers", ["full_name"], :name => "index_workers_on_full_name"
+  add_index "workers", ["last_seen_at"], :name => "index_workers_on_last_seen_at"
   add_index "workers", ["name", "host"], :name => "index_workers_on_name_and_host"
 
 end

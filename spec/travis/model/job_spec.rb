@@ -63,7 +63,7 @@ describe Job do
       ]
     end
 
-    it 'should tag a job its log contains a particular string' do
+    xit 'should tag a job its log contains a particular string' do
       job.log.update_attributes!(content: 'rake is not part of the bundle')
       job.finish!
       job.reload.tags.should == "rake_not_bundled"
@@ -176,26 +176,6 @@ describe Job do
       job = Job.new
       job.commit = commit
       job.pull_request?.should be_true
-    end
-  end
-
-  describe 'requeue' do
-    let(:job) { Factory(:test, state: 'finished', queued_at: Time.now, finished_at: Time.now) }
-
-    it 'sets the state to :created' do
-      job.requeue
-      job.state.should == :created
-    end
-
-    it 'resets related attributes' do
-      job.requeue
-      job.queued_at.should be_nil
-      job.finished_at.should be_nil
-    end
-
-    it 'triggers a :created event' do
-      job.expects(:notify).with(:requeue)
-      job.requeue
     end
   end
 

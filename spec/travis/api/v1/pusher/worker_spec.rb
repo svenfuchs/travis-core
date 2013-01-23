@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Travis::Api::V1::Pusher::Worker do
-  include Travis::Testing::Stubs
+  include Travis::Testing::Stubs, Support::Formats
 
   let(:data)   { Travis::Api::V1::Pusher::Worker.new(worker).data }
 
@@ -11,7 +11,6 @@ describe Travis::Api::V1::Pusher::Worker do
       'host' => 'ruby-1.worker.travis-ci.org',
       'name' => 'ruby-1',
       'state' => 'created',
-      'last_error' => nil,
       'payload' => nil
     }
   end

@@ -5,6 +5,8 @@ module Travis
         class Worker
           attr_reader :worker
 
+          include Formats
+
           def initialize(worker, options = {})
             @worker = worker
           end
@@ -15,8 +17,7 @@ module Travis
               'host' => worker.host,
               'name' => worker.name,
               'state' => worker.state,
-              'payload' => worker.payload,
-              'last_error' => worker.last_error
+              'payload' => worker.payload
             }
           end
         end

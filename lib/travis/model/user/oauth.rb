@@ -1,6 +1,11 @@
 class User
   module Oauth
     class << self
+      def wanted_scopes
+        return [] unless Travis.config.oauth2.try(:scope)
+        @wanted_scopes ||= Travis.config.oauth2.scope.split(',').sort
+      end
+
       def find_or_create_by(payload)
         attrs = attributes_from(payload)
         user = User.find_by_github_id(attrs['github_id'])

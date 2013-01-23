@@ -96,7 +96,8 @@ module Travis
           committer_email: 'svenfuchs@artweb-design.de',
           committed_at: Time.now.utc - 3600,
           compare_url: 'https://github.com/svenfuchs/minimal/compare/master...develop',
-          pull_request?: false
+          pull_request?: false,
+          pull_request_number: nil
         )
       end
 
@@ -192,7 +193,6 @@ module Travis
           state: 'created',
           last_seen_at: Time.now.utc,
           payload: nil,
-          last_error: nil
         )
       end
 
@@ -209,7 +209,9 @@ module Travis
           syncing?: false,
           is_syncing: false,
           synced_at: Time.now.utc - 3600,
-          tokens: [stub('token', token: 'token')]
+          tokens: [stub('token', token: 'token')],
+          github_scopes: Travis.config.oauth2.try(:scopes).to_s.split(','),
+          correct_scopes?: true
         )
       end
 
