@@ -4,8 +4,8 @@ services:
 rvm:
   - 1.9.3
 before_script:
-  - ps ax
   - sudo service mysql stop
+  - redis-cli config set save ""
   - 'RAILS_ENV=test rake db:create db:schema:load --trace'
 script:
   - './build.sh'
