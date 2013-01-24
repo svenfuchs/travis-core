@@ -9,4 +9,4 @@ script:
   - './build.sh'
 notifications:
   irc: "irc.freenode.org#travis"
-after_failure: "cat /var/log/redis/redis.log"
+after_failure: "sudo cat /var/log/redis/redis.log"
