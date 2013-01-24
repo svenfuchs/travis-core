@@ -4,6 +4,7 @@ services:
 rvm:
   - 1.9.3
 before_script:
+  - sudo sysctl vm.overcommit_memory=1
   - 'RAILS_ENV=test rake db:create db:schema:load --trace'
 script:
   - './build.sh'
