@@ -17,6 +17,10 @@ require 'stringio'
 require 'logger'
 require 'patches/rspec_hash_diff'
 
+# https://github.com/dtao/safe_yaml#known-issues
+require 'safe_yaml'
+SafeYAML::OPTIONS[:deserialize_symbols] = true
+
 Travis.logger = Logger.new(StringIO.new)
 Travis.services = Travis::Services
 Travis::Features.start
