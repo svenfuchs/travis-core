@@ -1,4 +1,5 @@
 require 'active_support/core_ext/class/attribute'
+require 'safe_yaml'
 
 module Travis
   module Github
@@ -41,7 +42,7 @@ module Travis
           end
 
           def parse(yaml)
-            YAML.load(yaml).merge('.result' => 'configured')
+            YAML.load(yaml, :safe => true).merge('.result' => 'configured')
           rescue StandardError, Psych::SyntaxError => e
             log_exception(e)
             { '.result' => 'parse_error' }
