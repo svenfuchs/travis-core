@@ -16,6 +16,7 @@ module Travis
               type: :gauge
             }
           end
+          queue.submit
         end
 
         def build_result
