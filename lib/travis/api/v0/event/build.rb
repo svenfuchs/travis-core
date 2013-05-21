@@ -12,7 +12,6 @@ module Travis
             @repository = build.repository
             @request = build.request
             @commit = build.commit
-            # @options = options
           end
 
           def data(extra = {})
@@ -49,15 +48,9 @@ module Travis
                 'id' => repository.id,
                 'key' => repository.key.try(:public_key),
                 'slug' => repository.slug,
-                'owner_email' => repository.owner_email
-                # 'description' => repository.description,
-                # 'last_build_id' => repository.last_build_id,
-                # 'last_build_number' => repository.last_build_number,
-                # 'last_build_state' => repository.last_build_state.to_s,
-                # 'last_build_duration' => repository.last_build_duration,
-                # 'last_build_language' => repository.last_build_language,
-                # 'last_build_started_at' => format_date(repository.last_build_started_at),
-                # 'last_build_finished_at' => format_date(repository.last_build_finished_at),
+                'owner_email' => repository.owner_email,
+                'owner_name' => repository.owner_name,
+                'owner_id' => repository.owner_id
               }
             end
 
@@ -65,7 +58,6 @@ module Travis
               {
                 'token' => request.token,
                 'head_commit' => (request.head_commit || '')
-                # 'base_commit' => (request.base_commit || '')
               }
             end
 
@@ -90,24 +82,8 @@ module Travis
                 'number' => job.number,
                 'state' => job.state.to_s,
                 'tags' => job.tags
-                # 'repository_id' => job.repository_id,
-                # 'build_id' => job.source_id,
-                # 'commit_id' => job.commit_id,
-                # 'log_id' => job.log.id,
-                # 'state' => job.state.to_s,
-                # 'config' => job.obfuscated_config.stringify_keys,
-                # 'started_at' => format_date(job.started_at),
-                # 'finished_at' => format_date(job.finished_at),
-                # 'queue' => job.queue,
-                # 'allow_failure' => job.allow_failure,
               }
             end
-
-            # def broadcast_data(broadcast)
-            #   {
-            #     'message' => broadcast.message
-            #   }
-            # end
         end
       end
     end

@@ -10,7 +10,7 @@ gem 'hubble',             github: 'roidrage/hubble'
 gem 'addressable'
 gem 'aws-sdk'
 gem 'json', '~> 1.7.7'
-
+gem 'librato-metrics' 
 gem 'dalli'
 
 # TODO need to release the gem as soon i'm certain this change makes sense

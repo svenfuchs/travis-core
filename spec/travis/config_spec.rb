@@ -68,12 +68,10 @@ describe Travis::Config do
     end
 
     it 'database' do
-      config.database.should == {
-        :adapter => 'postgresql',
-        :database => 'travis_test',
-        :encoding => 'unicode',
-        :min_messages => 'warning'
-      }
+      config.database[:adapter].should == 'postgresql'
+      config.database[:database].should == 'travis_test'
+      config.database[:encoding].should == 'unicode'
+      config.database[:min_messages].should == 'warning'
     end
   end
 
