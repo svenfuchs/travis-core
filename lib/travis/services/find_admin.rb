@@ -12,7 +12,6 @@ module Travis
 
       def run
         if repository
-          admin = candidates.first
           admin || raise_admin_missing
         else
           error "[github-admin] repository is nil: #{params.inspect}"
@@ -25,7 +24,15 @@ module Travis
         params[:repository]
       end
 
+      def validate?
+        params.fetch(:validate) { true }
+      end
+
       private
+
+        def admin
+          validate? ? candidates.detect { |c| validate(c) } : candidates.first
+        end
 
         def candidates
           User.with_github_token.with_permissions(:repository_id => repository.id, :admin => true)

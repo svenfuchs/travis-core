@@ -59,6 +59,13 @@ describe Travis::Services::FindAdmin do
       end
     end
 
+    describe 'without validation' do
+      it 'does not double check with GitHub if the user still has access' do
+        GH.stubs(:[]).with("repos/#{repository.slug}").raises
+        described_class.new(nil, repository: repository, validate: false).run
+      end
+    end
+
     def ignore_exception(&block)
       block.call
     rescue Travis::AdminMissing

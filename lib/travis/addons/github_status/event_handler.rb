@@ -9,24 +9,35 @@ module Travis
         EVENTS = /build:(started|finished)/
 
         def handle?
-          token.present?
+          token(potential_admin).present? or token(validated_admin).present?
         end
 
         def handle
-          Travis::Addons::GithubStatus::Task.run(:github_status, payload, token: token)
+          Travis::Addons::GithubStatus::Task.run(:github_status, payload, token: token(potential_admin))
+        rescue Exception
+          Travis::Addons::GithubStatus::Task.run(:github_status, payload, token: token(validated_admin))
         end
 
         private
 
-          def token
-            admin.try(:github_oauth_token)
+          def token(user)
+            user.try(:github_oauth_token)
           rescue Travis::AdminMissing => error
             Travis.logger.error error.message
             nil
           end
 
-          def admin
-            @admin ||= Travis.run_service(:find_admin, repository: object.repository)
+          def potential_admin
+            @potential_admin ||= find_admin(false)
+          end
+
+
+          def validated_admin
+            @validated_admin ||= find_admin(true)
+          end
+
+          def find_admin(validate)
+            Travis.run_service(:find_admin, repository: object.repository, validate: validate)
           end
 
           Instruments::EventHandler.attach_to(self)
