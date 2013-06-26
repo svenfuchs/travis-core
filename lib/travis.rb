@@ -2,7 +2,7 @@ require 'travis/support'
 require 'travis_core/version'
 require 'gh'
 require 'pusher'
-require 'redis'
+require 'travis/redis_pool'
 
 autoload :Account,         'travis/model/account'
 autoload :Broadcast,       'travis/model/broadcast'
@@ -50,6 +50,7 @@ module Travis
   autoload :Api,          'travis/api'
   autoload :Config,       'travis/config'
   autoload :Chunkifier,   'travis/chunkifier'
+  autoload :CommitCommand,   'travis/commit_command'
   autoload :Enqueue,      'travis/enqueue'
   autoload :Event,        'travis/event'
   autoload :Features,     'travis/features'
@@ -93,7 +94,7 @@ module Travis
     attr_accessor :redis
 
     def start
-      @redis = Redis.new(url: config.redis.url) # should probably be in travis-support?
+      @redis = Travis::RedisPool.new(config.redis)
     end
 
     def config

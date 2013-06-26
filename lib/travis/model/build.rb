@@ -1,6 +1,7 @@
 require 'active_record'
 require 'core_ext/active_record/base'
 require 'core_ext/hash/deep_symbolize_keys'
+require 'simple_states'
 
 # Build currently models a central but rather abstract domain entity: the thing
 # that is triggered by a Github request (service hook ping).
@@ -37,14 +38,13 @@ require 'core_ext/hash/deep_symbolize_keys'
 #                  TODO probably should be cleaned up and moved to
 #                  travis/notification)
 class Build < ActiveRecord::Base
-  autoload :Compat,        'travis/model/build/compat'
   autoload :Denormalize,   'travis/model/build/denormalize'
   autoload :Matrix,        'travis/model/build/matrix'
   autoload :Metrics,       'travis/model/build/metrics'
   autoload :ResultMessage, 'travis/model/build/result_message'
   autoload :States,        'travis/model/build/states'
 
-  include Compat, Matrix, States
+  include Matrix, States, SimpleStates
   include Travis::Model::EnvHelpers
 
   belongs_to :commit
@@ -58,9 +58,11 @@ class Build < ActiveRecord::Base
 
   serialize :config
 
+  delegate :same_repo_pull_request?, :to => :request
+
   class << self
     def recent(options = {})
-      where('started_at IS NOT NULL').order(arel_table[:started_at].desc).paged(options)
+      where('state IN (?)', state_names - [:created, :queued]).order(arel_table[:started_at].desc).paged(options)
     end
 
     def was_started
@@ -155,6 +157,11 @@ class Build < ActiveRecord::Base
     expand_matrix
   end
 
+  def secure_env_enabled?
+    !pull_request? || same_repo_pull_request?
+  end
+  alias addons_enabled? secure_env_enabled?
+
   # sometimes the config is not deserialized and is returned
   # as a string, this is a work around for now :(
   def config
@@ -172,8 +179,8 @@ class Build < ActiveRecord::Base
 
   def obfuscated_config
     config.dup.tap do |config|
+      config.delete(:source_key)
       next unless config[:env]
-
       config[:env] = [config[:env]] unless config[:env].is_a?(Array)
       if config[:env]
         config[:env] = config[:env].map do |env|
@@ -233,13 +240,9 @@ class Build < ActiveRecord::Base
     request.pull_request?
   end
 
-  def previous_result
-    # TODO remove once previous_result has been populated
-    read_attribute(:previous_result) || repository.builds.on_branch(commit.branch).previous(self).try(:result)
-  end
-
-  def previous_passed?
-    previous_result == 0
+  # COMPAT: used in http api v1, deprecate as soon as v1 gets retired
+  def result
+    state.try(:to_sym) == :passed ? 0 : 1
   end
 
   private
