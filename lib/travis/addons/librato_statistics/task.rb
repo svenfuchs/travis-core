@@ -10,10 +10,12 @@ module Travis
       class Task < Travis::Task
         def process
           [repository_key, owner_key, language_key].each do |metric|
-            queue.add "travis.build.statistics.#{metric}.#{build_result}.count" => {
+            queue.add "#{Travis.config.host}.build.statistics.#{metric}.#{build_result}.count" => {
               value: 1,
               source: Travis.config.host,
-              type: :gauge
+              type: :gauge,
+              aggregate: true,
+              summarize_function: 'sum'
             }
           end
           queue.submit
