@@ -68,7 +68,7 @@ module Travis
           end
 
           def transaction(&block)
-            ActiveRecord::Base.transaction(&block)
+            ActiveRecord::Base.transaction(requires_new: true, &block)
           rescue ActiveRecord::ActiveRecordError => e
             # puts e.message, e.backtrace
             Travis::Exceptions.handle(e)
