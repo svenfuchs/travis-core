@@ -17,12 +17,14 @@ Gem::Specification.new do |s|
   s.rubyforge_project = '[none]'
 
   s.add_dependency 'rake'
-  s.add_dependency 'thor',              '~> 0.14.6'
-  s.add_dependency 'activerecord',      '~> 3.2.12'
-  s.add_dependency 'actionmailer',      '~> 3.2.12'
-  s.add_dependency 'railties',          '~> 3.2.12'
+  s.add_dependency 'thor',              '~> 0.18.1'
+  s.add_dependency 'activerecord',      '~> 4.0.0'
+  s.add_dependency 'actionmailer',      '~> 4.0.0'
+  s.add_dependency 'railties',          '~> 4.0.0'
   s.add_dependency 'rollout',           '~> 1.1.0'
   s.add_dependency 'coder',             '~> 0.4.0'
+
+  s.add_dependency 'protected_attributes'
 
   # db
   s.add_dependency 'data_migrations',   '~> 0.0.1'

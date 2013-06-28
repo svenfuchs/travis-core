@@ -2,7 +2,7 @@ source 'https://rubygems.org'
 
 gemspec
 
-gem 'travis-support',     github: 'travis-ci/travis-support'
+gem 'travis-support', github: 'travis-ci/travis-support', branch: 'rails4'
 gem 'travis-sidekiqs',    github: 'travis-ci/travis-sidekiqs', require: nil
 gem 'gh',                 github: 'rkh/gh'
 gem 'newrelic_rpm',       '~> 3.4.2'
@@ -31,8 +31,8 @@ end
 
 group :test do
   gem 'rspec',            '~> 2.8.0'
-  gem 'factory_girl',     '~> 2.6.0'
-  gem 'database_cleaner', '~> 0.8.0'
+  gem 'factory_girl',     '~> 4.2.0'
+  gem 'database_cleaner', '~> 1.0.1'
   gem 'mocha',            '~> 0.10.0'
   gem 'webmock',          '~> 1.8.0'
   gem 'guard'
