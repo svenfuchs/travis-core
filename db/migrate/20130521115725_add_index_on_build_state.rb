@@ -1,13 +1,7 @@
 class AddIndexOnBuildState < ActiveRecord::Migration
   self.disable_ddl_transaction!
-  def up
-     execute <<-SQL
-      CREATE INDEX CONCURRENTLY index_builds_on_state
-        ON builds(state);
-    SQL
-  end
 
-  def down
-    execute "DROP INDEX CONCURRENTLY index_builds_on_state"
+  def change
+    add_index :builds, :state, algorithm: :concurrently
   end
 end
