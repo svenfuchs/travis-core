@@ -9,27 +9,30 @@
 # from scratch. The latter is a flawed and unsustainable approach (the more migrations
 # you'll amass, the slower it'll run and the greater likelihood for issues).
 #
-# It's strongly recommended to check this file into your version control system.
+# It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20130521141357) do
+ActiveRecord::Schema.define(version: 20130521141357) do
 
-  create_table "broadcasts", :force => true do |t|
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "plpgsql"
+
+  create_table "broadcasts", force: true do |t|
     t.integer  "recipient_id"
     t.string   "recipient_type"
     t.string   "kind"
     t.string   "message"
     t.boolean  "expired"
-    t.datetime "created_at",     :null => false
-    t.datetime "updated_at",     :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
-  create_table "builds", :force => true do |t|
+  create_table "builds", force: true do |t|
     t.integer  "repository_id"
     t.string   "number"
     t.datetime "started_at"
     t.datetime "finished_at"
-    t.datetime "created_at",          :null => false
-    t.datetime "updated_at",          :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
     t.text     "config"
     t.integer  "commit_id"
     t.integer  "request_id"
@@ -44,14 +47,14 @@ ActiveRecord::Schema.define(:version => 20130521141357) do
     t.string   "branch"
   end
 
-  add_index "builds", ["finished_at"], :name => "index_builds_on_finished_at"
-  add_index "builds", ["repository_id", "event_type", "state", "branch"], :name => "index_builds_on_repository_id_and_event_type_and_state_and_bran"
-  add_index "builds", ["repository_id", "event_type"], :name => "index_builds_on_repository_id_and_event_type"
-  add_index "builds", ["repository_id", "state"], :name => "index_builds_on_repository_id_and_state"
-  add_index "builds", ["request_id"], :name => "index_builds_on_request_id"
-  add_index "builds", ["state"], :name => "index_builds_on_state"
+  add_index "builds", ["finished_at"], name: "index_builds_on_finished_at", using: :btree
+  add_index "builds", ["repository_id", "event_type", "state", "branch"], name: "index_builds_on_repository_id_and_event_type_and_state_and_bran", using: :btree
+  add_index "builds", ["repository_id", "event_type"], name: "index_builds_on_repository_id_and_event_type", using: :btree
+  add_index "builds", ["repository_id", "state"], name: "index_builds_on_repository_id_and_state", using: :btree
+  add_index "builds", ["request_id"], name: "index_builds_on_request_id", using: :btree
+  add_index "builds", ["state"], name: "index_builds_on_state", using: :btree
 
-  create_table "commits", :force => true do |t|
+  create_table "commits", force: true do |t|
     t.integer  "repository_id"
     t.string   "commit"
     t.string   "ref"
@@ -63,34 +66,34 @@ ActiveRecord::Schema.define(:version => 20130521141357) do
     t.string   "committer_email"
     t.string   "author_name"
     t.string   "author_email"
-    t.datetime "created_at",      :null => false
-    t.datetime "updated_at",      :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
-  add_index "commits", ["branch"], :name => "index_commits_on_branch"
-  add_index "commits", ["commit"], :name => "index_commits_on_commit"
+  add_index "commits", ["branch"], name: "index_commits_on_branch", using: :btree
+  add_index "commits", ["commit"], name: "index_commits_on_commit", using: :btree
 
-  create_table "emails", :force => true do |t|
+  create_table "emails", force: true do |t|
     t.integer  "user_id"
     t.string   "email"
-    t.datetime "created_at", :null => false
-    t.datetime "updated_at", :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
-  add_index "emails", ["email"], :name => "index_emails_on_email"
-  add_index "emails", ["user_id"], :name => "index_emails_on_user_id"
+  add_index "emails", ["email"], name: "index_emails_on_email", using: :btree
+  add_index "emails", ["user_id"], name: "index_emails_on_user_id", using: :btree
 
-  create_table "events", :force => true do |t|
+  create_table "events", force: true do |t|
     t.integer  "source_id"
     t.string   "source_type"
     t.integer  "repository_id"
     t.string   "event"
     t.text     "data"
-    t.datetime "created_at",    :null => false
-    t.datetime "updated_at",    :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
-  create_table "jobs", :force => true do |t|
+  create_table "jobs", force: true do |t|
     t.integer  "repository_id"
     t.integer  "commit_id"
     t.integer  "source_id"
@@ -103,34 +106,34 @@ ActiveRecord::Schema.define(:version => 20130521141357) do
     t.string   "worker"
     t.datetime "started_at"
     t.datetime "finished_at"
-    t.datetime "created_at",                       :null => false
-    t.datetime "updated_at",                       :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
     t.text     "tags"
-    t.boolean  "allow_failure", :default => false
+    t.boolean  "allow_failure", default: false
     t.integer  "owner_id"
     t.string   "owner_type"
     t.integer  "result"
     t.datetime "queued_at"
   end
 
-  add_index "jobs", ["created_at"], :name => "index_jobs_on_created_at"
-  add_index "jobs", ["owner_id", "owner_type", "state"], :name => "index_jobs_on_owner_id_and_owner_type_and_state"
-  add_index "jobs", ["queue", "state"], :name => "index_jobs_on_queue_and_state"
-  add_index "jobs", ["repository_id"], :name => "index_jobs_on_repository_id"
-  add_index "jobs", ["state", "owner_id", "owner_type"], :name => "index_jobs_on_state_owner_type_owner_id"
-  add_index "jobs", ["type", "source_id", "source_type"], :name => "index_jobs_on_type_and_owner_id_and_owner_type"
+  add_index "jobs", ["created_at"], name: "index_jobs_on_created_at", using: :btree
+  add_index "jobs", ["owner_id", "owner_type", "state"], name: "index_jobs_on_owner_id_and_owner_type_and_state", using: :btree
+  add_index "jobs", ["queue", "state"], name: "index_jobs_on_queue_and_state", using: :btree
+  add_index "jobs", ["repository_id"], name: "index_jobs_on_repository_id", using: :btree
+  add_index "jobs", ["state", "owner_id", "owner_type"], name: "index_jobs_on_state_owner_type_owner_id", using: :btree
+  add_index "jobs", ["type", "source_id", "source_type"], name: "index_jobs_on_type_and_source_id_and_source_type", using: :btree
 
-  create_table "log_parts", :force => true do |t|
-    t.integer  "log_id",     :null => false
+  create_table "log_parts", force: true do |t|
+    t.integer  "log_id",     null: false
     t.text     "content"
     t.integer  "number"
     t.boolean  "final"
     t.datetime "created_at"
   end
 
-  add_index "log_parts", ["log_id", "number"], :name => "index_log_parts_on_log_id_and_number"
+  add_index "log_parts", ["log_id", "number"], name: "index_log_parts_on_log_id_and_number", using: :btree
 
-  create_table "logs", :force => true do |t|
+  create_table "logs", force: true do |t|
     t.integer  "job_id"
     t.text     "content"
     t.datetime "created_at"
@@ -141,40 +144,40 @@ ActiveRecord::Schema.define(:version => 20130521141357) do
     t.boolean  "archive_verified"
   end
 
-  add_index "logs", ["archive_verified"], :name => "index_logs_on_archive_verified"
-  add_index "logs", ["archived_at"], :name => "index_logs_on_archived_at"
-  add_index "logs", ["job_id"], :name => "index_logs_on_job_id"
+  add_index "logs", ["archive_verified"], name: "index_logs_on_archive_verified", using: :btree
+  add_index "logs", ["archived_at"], name: "index_logs_on_archived_at", using: :btree
+  add_index "logs", ["job_id"], name: "index_logs_on_job_id", using: :btree
 
-  create_table "memberships", :force => true do |t|
+  create_table "memberships", force: true do |t|
     t.integer "organization_id"
     t.integer "user_id"
   end
 
-  create_table "organizations", :force => true do |t|
+  create_table "organizations", force: true do |t|
     t.string   "name"
     t.string   "login"
     t.integer  "github_id"
-    t.datetime "created_at", :null => false
-    t.datetime "updated_at", :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
-  create_table "permissions", :force => true do |t|
+  create_table "permissions", force: true do |t|
     t.integer "user_id"
     t.integer "repository_id"
-    t.boolean "admin",         :default => false
-    t.boolean "push",          :default => false
-    t.boolean "pull",          :default => false
+    t.boolean "admin",         default: false
+    t.boolean "push",          default: false
+    t.boolean "pull",          default: false
   end
 
-  add_index "permissions", ["repository_id"], :name => "index_permissions_on_repository_id"
-  add_index "permissions", ["user_id"], :name => "index_permissions_on_user_id"
+  add_index "permissions", ["repository_id"], name: "index_permissions_on_repository_id", using: :btree
+  add_index "permissions", ["user_id"], name: "index_permissions_on_user_id", using: :btree
 
-  create_table "repositories", :force => true do |t|
+  create_table "repositories", force: true do |t|
     t.string   "name"
     t.string   "url"
     t.integer  "last_duration"
-    t.datetime "created_at",                                :null => false
-    t.datetime "updated_at",                                :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
     t.integer  "last_build_id"
     t.string   "last_build_number"
     t.integer  "last_build_status"
@@ -188,15 +191,15 @@ ActiveRecord::Schema.define(:version => 20130521141357) do
     t.integer  "last_build_duration"
     t.integer  "owner_id"
     t.string   "owner_type"
-    t.boolean  "private",                :default => false
+    t.boolean  "private",                default: false
     t.integer  "last_build_result"
     t.string   "last_build_state"
   end
 
-  add_index "repositories", ["last_build_started_at"], :name => "index_repositories_on_last_build_started_at"
-  add_index "repositories", ["owner_name", "name"], :name => "index_repositories_on_owner_name_and_name"
+  add_index "repositories", ["last_build_started_at"], name: "index_repositories_on_last_build_started_at", using: :btree
+  add_index "repositories", ["owner_name", "name"], name: "index_repositories_on_owner_name_and_name", using: :btree
 
-  create_table "requests", :force => true do |t|
+  create_table "requests", force: true do |t|
     t.integer  "repository_id"
     t.integer  "commit_id"
     t.string   "state"
@@ -206,8 +209,8 @@ ActiveRecord::Schema.define(:version => 20130521141357) do
     t.text     "config"
     t.datetime "started_at"
     t.datetime "finished_at"
-    t.datetime "created_at",    :null => false
-    t.datetime "updated_at",    :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
     t.string   "event_type"
     t.string   "comments_url"
     t.string   "base_commit"
@@ -218,39 +221,39 @@ ActiveRecord::Schema.define(:version => 20130521141357) do
     t.string   "message"
   end
 
-  add_index "requests", ["head_commit"], :name => "index_requests_on_head_commit"
+  add_index "requests", ["head_commit"], name: "index_requests_on_head_commit", using: :btree
 
-  create_table "ssl_keys", :force => true do |t|
+  create_table "ssl_keys", force: true do |t|
     t.integer  "repository_id"
     t.text     "public_key"
     t.text     "private_key"
-    t.datetime "created_at",    :null => false
-    t.datetime "updated_at",    :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
-  add_index "ssl_keys", ["repository_id"], :name => "index_ssl_key_on_repository_id"
+  add_index "ssl_keys", ["repository_id"], name: "index_ssl_key_on_repository_id", using: :btree
 
-  create_table "tokens", :force => true do |t|
+  create_table "tokens", force: true do |t|
     t.integer  "user_id"
     t.string   "token"
-    t.datetime "created_at", :null => false
-    t.datetime "updated_at", :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
-  create_table "urls", :force => true do |t|
+  create_table "urls", force: true do |t|
     t.string   "url"
     t.string   "code"
-    t.datetime "created_at", :null => false
-    t.datetime "updated_at", :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
-  create_table "users", :force => true do |t|
+  create_table "users", force: true do |t|
     t.string   "name"
     t.string   "login"
     t.string   "email"
-    t.datetime "created_at",                            :null => false
-    t.datetime "updated_at",                            :null => false
-    t.boolean  "is_admin",           :default => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.boolean  "is_admin",           default: false
     t.integer  "github_id"
     t.string   "github_oauth_token"
     t.string   "gravatar_id"
@@ -260,11 +263,11 @@ ActiveRecord::Schema.define(:version => 20130521141357) do
     t.text     "github_scopes"
   end
 
-  add_index "users", ["github_id"], :name => "index_users_on_github_id"
-  add_index "users", ["github_oauth_token"], :name => "index_users_on_github_oauth_token"
-  add_index "users", ["login"], :name => "index_users_on_login", :unique => true
+  add_index "users", ["github_id"], name: "index_users_on_github_id", using: :btree
+  add_index "users", ["github_oauth_token"], name: "index_users_on_github_oauth_token", using: :btree
+  add_index "users", ["login"], name: "index_users_on_login", unique: true, using: :btree
 
-  create_table "workers", :force => true do |t|
+  create_table "workers", force: true do |t|
     t.string   "name"
     t.string   "host"
     t.string   "state"
@@ -275,8 +278,8 @@ ActiveRecord::Schema.define(:version => 20130521141357) do
     t.string   "full_name"
   end
 
-  add_index "workers", ["full_name"], :name => "index_workers_on_full_name"
-  add_index "workers", ["last_seen_at"], :name => "index_workers_on_last_seen_at"
-  add_index "workers", ["name", "host"], :name => "index_workers_on_name_and_host"
+  add_index "workers", ["full_name"], name: "index_workers_on_full_name", using: :btree
+  add_index "workers", ["last_seen_at"], name: "index_workers_on_last_seen_at", using: :btree
+  add_index "workers", ["name", "host"], name: "index_workers_on_name_and_host", using: :btree
 
 end
