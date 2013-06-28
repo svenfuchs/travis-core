@@ -4,9 +4,9 @@ describe Repository::StatusImage do
   include Support::ActiveRecord
 
   let(:cache)    { stub('states cache', fetch: nil, write: nil, fetch_state: nil) }
-  let!(:request) { Factory(:request, event_type: 'push', repository: repo) }
-  let!(:build)   { Factory(:build, repository: repo, request: request, state: :passed) }
-  let(:repo)     { Factory(:repository) }
+  let!(:request) { create(:request, event_type: 'push', repository: repo) }
+  let!(:build)   { create(:build, repository: repo, request: request, state: :passed) }
+  let(:repo)     { create(:repository) }
 
   before do
     described_class.any_instance.stubs(cache: cache)

@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Travis::Services::FindLog do
   include Support::ActiveRecord
 
-  let!(:job)    { Factory(:test) }
+  let!(:job)    { create(:test) }
   let(:log)     { job.log }
   let(:service) { described_class.new(stub('user'), params) }
 

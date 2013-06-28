@@ -3,9 +3,9 @@ require 'spec_helper'
 describe Broadcast do
   include Support::ActiveRecord
 
-  let(:org)  { Factory(:org) }
-  let(:repo) { Factory(:repository) }
-  let(:user) { Factory(:user) }
+  let(:org)  { create(:org) }
+  let(:repo) { create(:repository) }
+  let(:user) { create(:user) }
 
   before :each do
     user.organizations << org
@@ -26,7 +26,7 @@ describe Broadcast do
     end
 
     it 'does not find a broadcast for a different user' do
-      to_user = Broadcast.create!(recipient: Factory(:user, login: 'rkh'))
+      to_user = Broadcast.create!(recipient: create(:user, login: 'rkh'))
       broadcasts.should_not include(to_user)
     end
 
@@ -36,7 +36,7 @@ describe Broadcast do
     end
 
     it 'does not find a broadcast for a different org' do
-      to_org = Broadcast.create!(recipient: Factory(:org, login: 'sinatra'))
+      to_org = Broadcast.create!(recipient: create(:org, login: 'sinatra'))
       broadcasts.should_not include(to_org)
     end
 
@@ -46,7 +46,7 @@ describe Broadcast do
     end
 
     it 'does not find a broadcast for a different repo' do
-      to_repo = Broadcast.create!(recipient: Factory(:repository, name: 'sinatra'))
+      to_repo = Broadcast.create!(recipient: create(:repository, name: 'sinatra'))
       broadcasts.should_not include(to_repo)
     end
 
@@ -75,7 +75,7 @@ describe Broadcast do
     end
 
     it 'does not find a broadcast for a different repo' do
-      to_repo = Broadcast.create!(recipient: Factory(:repository, name: 'sinatra'))
+      to_repo = Broadcast.create!(recipient: create(:repository, name: 'sinatra'))
       broadcasts.should_not include(to_repo)
     end
 
@@ -87,7 +87,7 @@ describe Broadcast do
 
     it 'does not find a broadcast for a different org' do
       repo.update_attributes(owner: org)
-      to_org = Broadcast.create!(recipient: Factory(:org, login: 'sinatra'))
+      to_org = Broadcast.create!(recipient: create(:org, login: 'sinatra'))
       broadcasts.should_not include(to_org)
     end
 
@@ -99,7 +99,7 @@ describe Broadcast do
 
     it 'does not find a broadcast for a different user' do
       repo.update_attributes(owner: org)
-      to_org = Broadcast.create!(recipient: Factory(:user, login: 'rkh'))
+      to_org = Broadcast.create!(recipient: create(:user, login: 'rkh'))
       broadcasts.should_not include(to_org)
     end
   end

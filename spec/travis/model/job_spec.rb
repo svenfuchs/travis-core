@@ -4,7 +4,7 @@ describe Job do
   include Support::ActiveRecord
 
   describe ".queued" do
-    let(:jobs) { [Factory.create(:test), Factory.create(:test), Factory.create(:test)] }
+    let(:jobs) { [create(:test), create(:test), create(:test)] }
 
     it "returns jobs that are created but not started or finished" do
       jobs.first.start!
@@ -18,7 +18,7 @@ describe Job do
   end
 
   describe 'before_create' do
-    let(:job) { Job::Test.create!(owner: Factory(:user), repository: Factory(:repository), commit: Factory(:commit), source: Factory(:build)) }
+    let(:job) { Job::Test.create!(owner: create(:user), repository: create(:repository), commit: create(:commit), source: create(:build)) }
 
     before :each do
       Job::Test.any_instance.stubs(:enqueueable?).returns(false) # prevent jobs to enqueue themselves on create
@@ -55,7 +55,7 @@ describe Job do
   end
 
   describe 'tagging' do
-    let(:job) { Factory.create(:test) }
+    let(:job) { create(:test) }
 
     before :each do
       Job::Tagging.stubs(:rules).returns [
@@ -72,7 +72,7 @@ describe Job do
 
   describe 'obfuscated config' do
     it 'handles nil env' do
-      job = Job.new(repository: Factory(:repository))
+      job = Job.new(repository: create(:repository))
       job.config = { rvm: '1.8.7', env: nil }
 
       job.obfuscated_config.should == {
@@ -82,7 +82,7 @@ describe Job do
     end
 
     it 'leaves regular vars untouched' do
-      job = Job.new(repository: Factory(:repository))
+      job = Job.new(repository: create(:repository))
       job.expects(:secure_env_enabled?).at_least_once.returns(true)
       job.config = { rvm: '1.8.7', env: 'FOO=foo' }
 
@@ -93,7 +93,7 @@ describe Job do
     end
 
     it 'obfuscates env vars' do
-      job = Job.new(repository: Factory(:repository))
+      job = Job.new(repository: create(:repository))
       job.expects(:secure_env_enabled?).at_least_once.returns(true)
       config = { rvm: '1.8.7',
                  env: [job.repository.key.secure.encrypt('BAR=barbaz'), 'FOO=foo']
@@ -107,7 +107,7 @@ describe Job do
     end
 
     it 'normalizes env vars which are hashes to strings' do
-      job = Job.new(repository: Factory(:repository))
+      job = Job.new(repository: create(:repository))
       job.expects(:secure_env_enabled?).at_least_once.returns(true)
 
       config = { rvm: '1.8.7',
@@ -123,7 +123,7 @@ describe Job do
     end
 
     it 'removes addons config' do
-      job = Job.new(repository: Factory(:repository))
+      job = Job.new(repository: create(:repository))
       config = { rvm: '1.8.7',
                  addons: { sauce_connect: true },
                }
@@ -135,7 +135,7 @@ describe Job do
     end
 
     it 'removes source key' do
-      job = Job.new(repository: Factory(:repository))
+      job = Job.new(repository: create(:repository))
       config = { rvm: '1.8.7',
                  source_key: '1234'
                }
@@ -147,7 +147,7 @@ describe Job do
     end
     context 'when job has secure env disabled' do
       let :job do
-        job = Job.new(repository: Factory(:repository))
+        job = Job.new(repository: create(:repository))
         job.expects(:secure_env_enabled?).returns(false).at_least_once
         job
       end
@@ -204,7 +204,7 @@ describe Job do
 
   describe 'decrypted config' do
     it 'handles nil env' do
-      job = Job.new(repository: Factory(:repository))
+      job = Job.new(repository: create(:repository))
       job.config = { rvm: '1.8.7', env: nil, global_env: nil }
 
       job.decrypted_config.should == {
@@ -215,7 +215,7 @@ describe Job do
     end
 
     it 'normalizes env vars which are hashes to strings' do
-      job = Job.new(repository: Factory(:repository))
+      job = Job.new(repository: create(:repository))
       job.expects(:secure_env_enabled?).at_least_once.returns(true)
 
       config = { rvm: '1.8.7',
@@ -234,7 +234,7 @@ describe Job do
     end
 
     it 'does not change original config' do
-      job = Job.new(repository: Factory(:repository))
+      job = Job.new(repository: create(:repository))
       job.expects(:secure_env_enabled?).at_least_once.returns(true)
 
       config = {
@@ -251,7 +251,7 @@ describe Job do
     end
 
     it 'leaves regular vars untouched' do
-      job = Job.new(repository: Factory(:repository))
+      job = Job.new(repository: create(:repository))
       job.expects(:secure_env_enabled?).returns(true).at_least_once
       job.config = { rvm: '1.8.7', env: 'FOO=foo', global_env: 'BAR=bar' }
 
@@ -264,7 +264,7 @@ describe Job do
 
     context 'when secure env is not enabled' do
       let :job do
-        job = Job.new(repository: Factory(:repository))
+        job = Job.new(repository: create(:repository))
         job.expects(:secure_env_enabled?).returns(false).at_least_once
         job
       end
@@ -298,7 +298,7 @@ describe Job do
 
     context 'when addons are disabled' do
       let :job do
-        job = Job.new(repository: Factory(:repository))
+        job = Job.new(repository: create(:repository))
         job.expects(:addons_enabled?).returns(false).at_least_once
         job
       end
@@ -323,7 +323,7 @@ describe Job do
 
     context 'when job has secure env enabled' do
       let :job do
-        job = Job.new(repository: Factory(:repository))
+        job = Job.new(repository: create(:repository))
         job.expects(:secure_env_enabled?).returns(true).at_least_once
         job
       end
@@ -359,7 +359,7 @@ describe Job do
 
     context 'when job has addons enabled' do
       let :job do
-        job = Job.new(repository: Factory(:repository))
+        job = Job.new(repository: create(:repository))
         job.expects(:addons_enabled?).returns(true).at_least_once
         job
       end

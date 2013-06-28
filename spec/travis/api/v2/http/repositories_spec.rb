@@ -29,7 +29,7 @@ describe 'Travis::Api::V2::Http::Repositories using Travis::Services::FindRepos'
   let(:data)  { Travis::Api::V2::Http::Repositories.new(repos).data }
 
   before :each do
-    3.times { |i| Factory(:repository, :name => i) }
+    3.times { |i| create(:repository, :name => i) }
   end
 
   it 'queries' do

@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Travis::Services::FindRepos do
   include Support::ActiveRecord
 
-  let!(:repo)   { Factory(:repository, :owner_name => 'travis-ci', :name => 'travis-core') }
+  let!(:repo)   { create(:repository, :owner_name => 'travis-ci', :name => 'travis-core') }
   let(:service) { described_class.new(stub('user'), params) }
 
   attr_reader :params
@@ -19,7 +19,7 @@ describe Travis::Services::FindRepos do
   end
 
   it 'applies timeline only if no other params are given' do
-    repo = Factory(:repository, :owner_name => 'foo', :name => 'bar', :last_build_started_at => nil)
+    repo = create(:repository, :owner_name => 'foo', :name => 'bar', :last_build_started_at => nil)
     @params = { slug: 'foo/bar' }
     service.run.should include(repo)
   end
@@ -27,7 +27,7 @@ describe Travis::Services::FindRepos do
   describe 'given a member name' do
     it 'finds a repository where that member has permissions' do
       @params = { :member => 'joshk' }
-      repo.users << Factory(:user, :login => 'joshk')
+      repo.users << create(:user, :login => 'joshk')
       service.run.should include(repo)
     end
 

@@ -3,7 +3,7 @@ require 'spec_helper'
 describe User do
   include Support::ActiveRecord
 
-  let(:user)    { Factory(:user, :github_oauth_token => 'token') }
+  let(:user)    { create(:user, :github_oauth_token => 'token') }
   let(:payload) { GITHUB_PAYLOADS[:oauth] }
 
   describe 'find_or_create_for_oauth' do
@@ -29,7 +29,7 @@ describe User do
   end
 
   describe 'permission?' do
-    let!(:repo) { Factory(:org, :login => 'travis') }
+    let!(:repo) { create(:org, :login => 'travis') }
 
     it 'given roles and a condition it returns true if the user has a matching permission for this role' do
       user.permissions.create!(push: true, repository_id: repo.id)
@@ -52,8 +52,8 @@ describe User do
   end
 
   describe 'organization_ids' do
-    let!(:travis)  { Factory(:org, :login => 'travis') }
-    let!(:sinatra) { Factory(:org, :login => 'sinatra') }
+    let!(:travis)  { create(:org, :login => 'travis') }
+    let!(:sinatra) { create(:org, :login => 'sinatra') }
 
     before :each do
      user.organizations << travis
@@ -70,8 +70,8 @@ describe User do
   end
 
   describe 'repository_ids' do
-    let!(:travis)  { Factory(:repository, :name => 'travis', :owner => Factory(:org, :name => 'travis')) }
-    let!(:sinatra) { Factory(:repository, :name => 'sinatra', :owner => Factory(:org, :name => 'sinatra')) }
+    let!(:travis)  { create(:repository, :name => 'travis', :owner => create(:org, :name => 'travis')) }
+    let!(:sinatra) { create(:repository, :name => 'sinatra', :owner => create(:org, :name => 'sinatra')) }
 
     before :each do
      user.repositories << travis
@@ -138,10 +138,10 @@ describe User do
   end
 
   describe 'service_hooks' do
-    let(:own_repo)   { Factory(:repository, :name => 'own-repo', :description => 'description', :active => true) }
-    let(:admin_repo) { Factory(:repository, :name => 'admin-repo') }
-    let(:other_repo) { Factory(:repository, :name => 'other-repo') }
-    let(:push_repo) { Factory(:repository, :name => 'push-repo') }
+    let(:own_repo)   { create(:repository, :name => 'own-repo', :description => 'description', :active => true) }
+    let(:admin_repo) { create(:repository, :name => 'admin-repo') }
+    let(:other_repo) { create(:repository, :name => 'other-repo') }
+    let(:push_repo) { create(:repository, :name => 'push-repo') }
 
     before :each do
       user.permissions.create! :user => user, :repository => own_repo, :admin => true

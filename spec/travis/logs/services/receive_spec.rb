@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Travis::Logs::Services::Receive do
   include Support::ActiveRecord, Support::Silence
 
-  let(:job)     { Factory.create(:test, log: Factory.create(:log, content: '')) }
+  let(:job)     { create(:test, log: create(:log, content: '')) }
   let!(:log)    { job.log }
   let(:data)    { { 'id' => job.id, 'log' => 'log', 'number' => 1, 'final' => false } }
   let(:service) { described_class.new('data' => data) }

@@ -48,7 +48,7 @@ describe 'Travis::Api::V2::Http::Jobs using Travis::Services::Jobs::FindAll' do
   let(:data) { Travis::Api::V2::Http::Jobs.new(jobs).data }
 
   before :each do
-    3.times { Factory(:test) }
+    3.times { create(:test) }
   end
 
   it 'queries' do

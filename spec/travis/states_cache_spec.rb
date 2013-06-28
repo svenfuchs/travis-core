@@ -13,7 +13,7 @@ module Travis
     end
 
     it 'gets data from build if it\'s given instead of raw data' do
-      build = Factory(:build, finished_at: Time.new(2013, 1, 1, 10, 0, 0), state: :passed)
+      build = create(:build, finished_at: Time.new(2013, 1, 1, 10, 0, 0), state: :passed)
       data = { finished_at: '2013-01-01T10:00:00Z', state: 'passed' }.stringify_keys
 
       adapter.expects(:write).with(1, 'master', data)

@@ -9,7 +9,7 @@ describe Build, 'matrix' do
   describe :matrix_finished? do
     context 'if at least one job has not finished' do
       it 'returns false' do
-        build = Factory(:build, config: { rvm: ['1.8.7', '1.9.2'] })
+        build = create(:build, config: { rvm: ['1.8.7', '1.9.2'] })
         build.matrix[0].update_attributes(state: :passed)
         build.matrix[1].update_attributes(state: :started)
 
@@ -19,7 +19,7 @@ describe Build, 'matrix' do
 
     context 'if all jobs have finished' do
       it 'returns true' do
-        build = Factory(:build, config: { rvm: ['1.8.7', '1.9.2'] })
+        build = create(:build, config: { rvm: ['1.8.7', '1.9.2'] })
         build.matrix[0].update_attributes!(state: :passed)
         build.matrix[1].update_attributes!(state: :passed)
 
@@ -29,7 +29,7 @@ describe Build, 'matrix' do
   end
 
   describe :matrix_state do
-    let(:build) { Factory(:build, config: { rvm: ['1.8.7', '1.9.2'] }) }
+    let(:build) { create(:build, config: { rvm: ['1.8.7', '1.9.2'] }) }
 
     it 'returns :passed if all jobs have passed' do
       build.matrix[0].update_attributes!(state: "passed")
@@ -246,12 +246,12 @@ describe Build, 'matrix' do
       end
 
       it 'does not decrypt secure env vars (single test config)' do
-        repository = Factory(:repository)
+        repository = create(:repository)
 
         env = encrypt_config_env(single_test_config, repository)
         env = env.first.symbolize_keys
 
-        build = Factory(:build, config: single_test_config)
+        build = create(:build, config: single_test_config)
 
         build.expand_matrix_config(build.matrix_config).should == [
           [[:rvm, '1.8.7'], [:gemfile, 'gemfiles/rails-3.0.6'], [:env, env]],
@@ -259,13 +259,13 @@ describe Build, 'matrix' do
       end
 
       it 'does not encrypt (multiple tests config)' do
-        repository = Factory(:repository)
-        request    = Factory(:request)
+        repository = create(:repository)
+        request    = create(:request)
 
         env = encrypt_config_env(multiple_tests_config, repository)
         env = env.first.symbolize_keys
 
-        build = Factory(:build, config: multiple_tests_config)
+        build = create(:build, config: multiple_tests_config)
         build.expand_matrix_config(build.matrix_config).should == [
           [[:rvm, '1.8.7'], [:gemfile, 'gemfiles/rails-3.0.6'],      [:env, env]],
           [[:rvm, '1.8.7'], [:gemfile, 'gemfiles/rails-3.0.7'],      [:env, env]],
@@ -282,14 +282,14 @@ describe Build, 'matrix' do
          ]
       end
       it 'expands the build matrix configuration (single test config)' do
-        build = Factory(:build, config: single_test_config)
+        build = create(:build, config: single_test_config)
         build.expand_matrix_config(build.matrix_config).should == [
           [[:rvm, '1.8.7'], [:gemfile, 'gemfiles/rails-3.0.6'], [:env, 'USE_GIT_REPOS=true']],
         ]
       end
 
       it 'expands the build matrix configuration (multiple tests config)' do
-        build = Factory(:build, config: multiple_tests_config)
+        build = create(:build, config: multiple_tests_config)
         build.expand_matrix_config(build.matrix_config).should == [
           [[:rvm, '1.8.7'], [:gemfile, 'gemfiles/rails-3.0.6'],      [:env, 'USE_GIT_REPOS=true']],
           [[:rvm, '1.8.7'], [:gemfile, 'gemfiles/rails-3.0.7'],      [:env, 'USE_GIT_REPOS=true']],
@@ -314,7 +314,7 @@ describe Build, 'matrix' do
         end
 
         it 'adds global entries in env to all of the matrix elements' do
-          build = Factory(:build, config: env_global_config)
+          build = create(:build, config: env_global_config)
 
           build.expand_matrix_config(build.matrix_config).should == [
             [[:rvm, '1.9.2'], [:gemfile, 'gemfiles/rails-4.0.0'], [:env, ['FOO=bar', 'TOKEN=abcdef']]],
@@ -326,7 +326,7 @@ describe Build, 'matrix' do
       end
 
       it 'does not add global entries to a matrix, but leaves them in job config' do
-        build = Factory(:build, config: env_global_config)
+        build = create(:build, config: env_global_config)
 
         build.expand_matrix_config(build.matrix_config).should == [
           [[:rvm, '1.9.2'], [:gemfile, 'gemfiles/rails-4.0.0'], [:env, 'FOO=bar']],
@@ -341,24 +341,24 @@ describe Build, 'matrix' do
       end
 
       it 'sets the config to the jobs (no config)' do
-        build = Factory(:build, config: {})
+        build = create(:build, config: {})
         build.matrix.map(&:config).should == [{}]
       end
 
       it 'sets the config to the jobs (no matrix config)' do
-        build = Factory(:build, config: no_matrix_config)
+        build = create(:build, config: no_matrix_config)
         build.matrix.map(&:config).should == [{ script: 'rake ci' }]
       end
 
       it 'sets the config to the jobs (single test config)' do
-        build = Factory(:build, config: single_test_config)
+        build = create(:build, config: single_test_config)
         build.matrix.map(&:config).should == [
           { script: 'rake ci', rvm: '1.8.7', gemfile: 'gemfiles/rails-3.0.6', env: 'USE_GIT_REPOS=true' }
         ]
       end
 
       it 'sets the config to the jobs (multiple tests config)' do
-        build = Factory(:build, config: multiple_tests_config)
+        build = create(:build, config: multiple_tests_config)
         build.matrix.map(&:config).should == [
           { script: 'rake ci', rvm: '1.8.7', gemfile: 'gemfiles/rails-3.0.6',      env: 'USE_GIT_REPOS=true' },
           { script: 'rake ci', rvm: '1.8.7', gemfile: 'gemfiles/rails-3.0.7',      env: 'USE_GIT_REPOS=true' },
@@ -376,29 +376,29 @@ describe Build, 'matrix' do
       end
 
       it 'sets the config to the jobs (allow failures config)' do
-        build = Factory(:build, config: multiple_tests_config_with_allow_failures)
+        build = create(:build, config: multiple_tests_config_with_allow_failures)
         build.matrix.map(&:allow_failure).should == [false, false, false, true, false, false]
       end
 
       it 'ignores global env config when setting allow failures' do
-        build = Factory(:build, config: allow_failures_with_global_env)
+        build = create(:build, config: allow_failures_with_global_env)
         build.matrix.map(&:allow_failure).should == [true, false, false, false]
       end
 
       it 'copies build attributes' do
         # TODO spec other attributes!
-        build = Factory(:build, config: multiple_tests_config)
+        build = create(:build, config: multiple_tests_config)
         build.matrix.map(&:commit_id).uniq.should == [build.commit_id]
       end
 
       it 'adds a sub-build number to the job number' do
-        build = Factory(:build, config: multiple_tests_config)
+        build = create(:build, config: multiple_tests_config)
         build.matrix.map(&:number)[0..3].should == ['1.1', '1.2', '1.3', '1.4']
       end
 
       describe :exclude_matrix_config do
         it 'excludes a matrix config when all config items are defined in the exclusion' do
-          build = Factory(:build, config: multiple_tests_config_with_exculsion)
+          build = create(:build, config: multiple_tests_config_with_exculsion)
           matrix_exclusion = {
             exclude: [
               { rvm: '1.8.7', gemfile: 'gemfiles/rails-3.1.x' },
@@ -415,7 +415,7 @@ describe Build, 'matrix' do
         end
 
         it 'does not exclude a matrix config when the matrix exclusion definition is incomplete' do
-          build = Factory(:build, config: multiple_tests_config_with_invalid_exculsion)
+          build = create(:build, config: multiple_tests_config_with_invalid_exculsion)
 
           matrix_exclusion = { exclude: [{ rvm: '1.9.2', gemfile: 'gemfiles/rails-3.0.x' }] }
 
@@ -435,7 +435,7 @@ describe Build, 'matrix' do
 
     describe :include_matrix_config do
       it 'includes a matrix config' do
-          build = Factory(:build, config: multiple_tests_config_with_inclusion)
+          build = create(:build, config: multiple_tests_config_with_inclusion)
 
           matrix_inclusion = {
             include: [
@@ -454,10 +454,10 @@ describe Build, 'matrix' do
     end
 
     describe :matrix_config do
-      let(:repository) { Factory(:repository) }
+      let(:repository) { create(:repository) }
 
       it 'with string values' do
-        build = Factory(:build, config: { rvm: '1.8.7', gemfile: 'gemfiles/rails-2.3.x', env: 'FOO=bar' })
+        build = create(:build, config: { rvm: '1.8.7', gemfile: 'gemfiles/rails-2.3.x', env: 'FOO=bar' })
         expected = [
           [[:rvm,     '1.8.7']],
           [[:gemfile, 'gemfiles/rails-2.3.x']],
@@ -470,7 +470,7 @@ describe Build, 'matrix' do
         env    = repository.key.secure.encrypt('FOO=bar')
         env    = env.symbolize_keys
         config = { rvm: '1.8.7', gemfile: 'gemfiles/rails-2.3.x', env: env }
-        build = Factory(:build, repository: repository, config: config)
+        build = create(:build, repository: repository, config: config)
 
         expected = [
                     [[:rvm,     '1.8.7']],
@@ -481,7 +481,7 @@ describe Build, 'matrix' do
       end
 
       it 'with two Rubies and Gemfiles' do
-        build = Factory(:build, config: { rvm: ['1.8.7', '1.9.2'], gemfile: ['gemfiles/rails-2.3.x', 'gemfiles/rails-3.0.x'] })
+        build = create(:build, config: { rvm: ['1.8.7', '1.9.2'], gemfile: ['gemfiles/rails-2.3.x', 'gemfiles/rails-3.0.x'] })
         expected = [
           [[:rvm, '1.8.7'], [:rvm, '1.9.2']],
           [[:gemfile, 'gemfiles/rails-2.3.x'], [:gemfile, 'gemfiles/rails-3.0.x']]
@@ -490,7 +490,7 @@ describe Build, 'matrix' do
       end
 
       it 'with unequal number of Rubies, env variables and Gemfiles' do
-        build = Factory(:build, config: { rvm: ['1.8.7', '1.9.2', 'ree'], gemfile: ['gemfiles/rails-3.0.x'], env: ['DB=postgresql', 'DB=mysql'] })
+        build = create(:build, config: { rvm: ['1.8.7', '1.9.2', 'ree'], gemfile: ['gemfiles/rails-3.0.x'], env: ['DB=postgresql', 'DB=mysql'] })
         build.matrix_config.should == [
           [[:rvm, '1.8.7'], [:rvm, '1.9.2'], [:rvm, 'ree']],
           [[:gemfile, 'gemfiles/rails-3.0.x'], [:gemfile, 'gemfiles/rails-3.0.x'], [:gemfile, 'gemfiles/rails-3.0.x']],
@@ -499,7 +499,7 @@ describe Build, 'matrix' do
       end
 
       it 'with an array of Rubies and a single Gemfile' do
-        build = Factory(:build, config: { rvm: ['1.8.7', '1.9.2'], gemfile: 'gemfiles/rails-2.3.x' })
+        build = create(:build, config: { rvm: ['1.8.7', '1.9.2'], gemfile: 'gemfiles/rails-2.3.x' })
         build.matrix_config.should == [
           [[:rvm, '1.8.7'], [:rvm, '1.9.2']],
           [[:gemfile, 'gemfiles/rails-2.3.x'], [:gemfile, 'gemfiles/rails-2.3.x']]
@@ -510,7 +510,7 @@ describe Build, 'matrix' do
 
   describe 'for Scala projects' do
     it 'with a single Scala version given as a string' do
-      build = Factory(:build, config: { scala: '2.8.2', env: 'NETWORK=false' })
+      build = create(:build, config: { scala: '2.8.2', env: 'NETWORK=false' })
       expected = [
         [[:env, 'NETWORK=false']],
         [[:scala, '2.8.2']]
@@ -519,7 +519,7 @@ describe Build, 'matrix' do
     end
 
     it 'with multiple Scala versions and no env variables' do
-      build = Factory(:build, config: { scala: ['2.8.2', '2.9.1']})
+      build = create(:build, config: { scala: ['2.8.2', '2.9.1']})
       expected = [
          [[:scala, '2.8.2'], [:scala, '2.9.1']]
        ]
@@ -527,7 +527,7 @@ describe Build, 'matrix' do
     end
 
     it 'with a single Scala version passed in as array and two env variables' do
-      build = Factory(:build, config: { scala: ['2.8.2'], env: ['STORE=postgresql', 'STORE=redis'] })
+      build = create(:build, config: { scala: ['2.8.2'], env: ['STORE=postgresql', 'STORE=redis'] })
       build.matrix_config.should == [
         [[:env, 'STORE=postgresql'], [:env, 'STORE=redis']],
         [[:scala, '2.8.2'], [:scala, '2.8.2']]
@@ -537,17 +537,17 @@ describe Build, 'matrix' do
 
   describe 'matrix_for' do
     it 'selects matching builds' do
-      build = Factory(:build, config: { 'rvm' => ['1.8.7', '1.9.2'], 'env' => ['DB=sqlite3', 'DB=postgresql'] })
+      build = create(:build, config: { 'rvm' => ['1.8.7', '1.9.2'], 'env' => ['DB=sqlite3', 'DB=postgresql'] })
       build.matrix_for({ 'rvm' => '1.8.7', 'env' => 'DB=sqlite3' }).should == [build.matrix[0]]
     end
 
     it 'does not select builds with non-matching values' do
-      build = Factory(:build, config: { 'rvm' => ['1.8.7', '1.9.2'], 'env' => ['DB=sqlite3', 'DB=postgresql'] })
+      build = create(:build, config: { 'rvm' => ['1.8.7', '1.9.2'], 'env' => ['DB=sqlite3', 'DB=postgresql'] })
       build.matrix_for({ 'rvm' => 'nomatch', 'env' => 'DB=sqlite3' }).should be_empty
     end
 
     it 'does not select builds with non-matching keys' do
-      build = Factory(:build, config: { 'rvm' => ['1.8.7', '1.9.2'], 'env' => ['DB=sqlite3', 'DB=postgresql'] })
+      build = create(:build, config: { 'rvm' => ['1.8.7', '1.9.2'], 'env' => ['DB=sqlite3', 'DB=postgresql'] })
       build.matrix_for({ 'rvm' => '1.8.7', 'nomatch' => 'DB=sqlite3' }).should == [build.matrix[0], build.matrix[1]]
     end
   end

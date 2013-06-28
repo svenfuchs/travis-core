@@ -16,7 +16,7 @@ describe Build::States do
     describe 'create' do
       xit 'notifies observers' do
         Travis::Event.expects(:dispatch).with { |event| event == 'build:created' }
-        Factory(:build)
+        create(:build)
       end
     end
 

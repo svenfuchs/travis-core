@@ -37,12 +37,12 @@ end
 # describe 'Travis::Api::V2::Http::Events using Travis::Services::Events::FindAll' do
 #   include Support::ActiveRecord
 #
-#   let!(:repo)  { Factory(:repository) }
+#   let!(:repo)  { create(:repository) }
 #   let(:events) { Travis::Services::Events::FindAll.new(nil, :repository_id => repo.id).run }
 #   let(:data)   { Travis::Api::V2::Http::Events.new(events).data }
 #
 #   before :each do
-#     3.times { Factory(:event, :repository => repo) }
+#     3.times { create(:event, :repository => repo) }
 #   end
 #
 #   it 'queries' do

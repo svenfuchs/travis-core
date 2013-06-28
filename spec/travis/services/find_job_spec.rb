@@ -3,8 +3,8 @@ require 'spec_helper'
 describe Travis::Services::FindJob do
   include Support::ActiveRecord
 
-  let(:repo)    { Factory(:repository) }
-  let!(:job)    { Factory(:test, repository: repo, state: :created, queue: 'builds.linux') }
+  let(:repo)    { create(:repository) }
+  let!(:job)    { create(:test, repository: repo, state: :created, queue: 'builds.linux') }
   let(:params)  { { id: job.id } }
   let(:service) { described_class.new(stub('user'), params) }
 

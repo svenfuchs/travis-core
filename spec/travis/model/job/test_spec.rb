@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Job::Test do
   include Support::ActiveRecord
 
-  let(:job) { Factory(:test) }
+  let(:job) { create(:test) }
 
   before :each do
     Travis::Event.stubs(:dispatch)
@@ -59,7 +59,7 @@ describe Job::Test do
     end
 
     describe 'reset' do
-      let(:job) { Factory(:test, state: 'finished', queued_at: Time.now, finished_at: Time.now) }
+      let(:job) { create(:test, state: 'finished', queued_at: Time.now, finished_at: Time.now) }
 
       it 'sets the state to :created' do
         job.reset!

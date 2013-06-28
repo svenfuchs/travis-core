@@ -3,8 +3,8 @@ require 'spec_helper'
 describe Travis::Services::FindBuild do
   include Support::ActiveRecord
 
-  let(:repo)    { Factory(:repository, :owner_name => 'travis-ci', :name => 'travis-core') }
-  let!(:build)  { Factory(:build, :repository => repo, :state => :finished, :number => 1) }
+  let(:repo)    { create(:repository, :owner_name => 'travis-ci', :name => 'travis-core') }
+  let!(:build)  { create(:build, :repository => repo, :state => :finished, :number => 1) }
   let(:params)  { { :id => build.id } }
   let(:service) { described_class.new(stub('user'), params) }
 

@@ -3,24 +3,24 @@ require 'spec_helper'
 describe Build do
   include Support::ActiveRecord
 
-  let(:repository) { Factory(:repository) }
+  let(:repository) { create(:repository) }
 
   describe '#secure_env_enabled?' do
     it 'returns true if we\'re not dealing with pull request' do
-      build = Factory.build(:build)
+      build = build(:build)
       build.stubs(:pull_request?).returns(false)
       build.secure_env_enabled?.should be_true
     end
 
     it 'returns true if pull request is from the same repository' do
-      build = Factory.build(:build)
+      build = build(:build)
       build.stubs(:pull_request?).returns(true)
       build.stubs(:same_repo_pull_request?).returns(true)
       build.secure_env_enabled?.should be_true
     end
 
     it 'returns false if pull request is not from the same repository' do
-      build = Factory.build(:build)
+      build = build(:build)
       build.stubs(:pull_request?).returns(true)
       build.stubs(:same_repo_pull_request?).returns(false)
       build.secure_env_enabled?.should be_false
@@ -30,9 +30,9 @@ describe Build do
   describe 'class methods' do
     describe 'recent' do
       it 'returns recent builds ordered by started time descending' do
-        Factory(:build, state: 'passed', started_at: 2.second.ago)
-        Factory(:build, state: 'started', started_at: 1.second.ago)
-        Factory(:build, state: 'created', started_at: nil)
+        create(:build, state: 'passed', started_at: 2.second.ago)
+        create(:build, state: 'started', started_at: 1.second.ago)
+        create(:build, state: 'created', started_at: nil)
 
         Build.recent.all.map(&:state).should == ['started', 'passed']
       end
@@ -40,9 +40,9 @@ describe Build do
 
     describe 'was_started' do
       it 'returns builds that are either started or finished' do
-        Factory(:build, state: 'passed')
-        Factory(:build, state: 'started')
-        Factory(:build, state: 'created')
+        create(:build, state: 'passed')
+        create(:build, state: 'started')
+        create(:build, state: 'created')
 
         Build.was_started.map(&:state).sort.should == ['passed', 'started']
       end
@@ -50,23 +50,23 @@ describe Build do
 
     describe 'on_branch' do
       it 'returns builds that are on any of the given branches' do
-        Factory(:build, commit: Factory(:commit, branch: 'master'))
-        Factory(:build, commit: Factory(:commit, branch: 'develop'))
-        Factory(:build, commit: Factory(:commit, branch: 'feature'))
+        create(:build, commit: create(:commit, branch: 'master'))
+        create(:build, commit: create(:commit, branch: 'develop'))
+        create(:build, commit: create(:commit, branch: 'feature'))
 
         Build.on_branch('master,develop').map(&:commit).map(&:branch).sort.should == ['develop', 'master']
       end
 
       it 'does not include pull requests' do
-        Factory(:build, commit: Factory(:commit, branch: 'no-pull'), request: Factory(:request, event_type: 'pull_request'))
-        Factory(:build, commit: Factory(:commit, branch: 'no-pull'), request: Factory(:request, event_type: 'push'))
+        create(:build, commit: create(:commit, branch: 'no-pull'), request: create(:request, event_type: 'pull_request'))
+        create(:build, commit: create(:commit, branch: 'no-pull'), request: create(:request, event_type: 'push'))
         Build.on_branch('no-pull').count.should be == 1
       end
     end
 
     describe 'older_than' do
       before do
-        5.times { |i| Factory(:build, number: i) }
+        5.times { |i| create(:build, number: i) }
         Build.stubs(:per_page).returns(2)
       end
 
@@ -105,14 +105,14 @@ describe Build do
 
     describe 'paged' do
       it 'limits the results to the `per_page` value' do
-        3.times { Factory(:build) }
+        3.times { create(:build) }
         Build.stubs(:per_page).returns(1)
 
         Build.paged({}).should have(1).item
       end
 
       it 'uses an offset' do
-        3.times { |i| Factory(:build) }
+        3.times { |i| create(:build) }
         Build.stubs(:per_page).returns(1)
 
         builds = Build.paged({page: 2})
@@ -124,7 +124,7 @@ describe Build do
     describe 'next_number' do
       it 'returns the next build number' do
         1.upto(3) do |number|
-          Factory(:build, repository: repository, number: number)
+          create(:build, repository: repository, number: number)
           repository.builds.next_number.should == number + 1
         end
       end
@@ -132,8 +132,8 @@ describe Build do
 
     describe 'pushes' do
       before do
-        Factory(:build)
-        Factory(:build, request: Factory(:request, event_type: 'pull_request'))
+        create(:build)
+        create(:build, request: create(:request, event_type: 'pull_request'))
       end
 
       it "returns only builds which have Requests with an event_type of push" do
@@ -143,8 +143,8 @@ describe Build do
 
     describe 'pull_requests' do
       before do
-        Factory(:build)
-        Factory(:build, request: Factory(:request, event_type: 'pull_request'))
+        create(:build)
+        create(:build, request: create(:request, event_type: 'pull_request'))
       end
 
       it "returns only builds which have Requests with an event_type of pull_request" do
@@ -156,20 +156,20 @@ describe Build do
   describe 'creation' do
     describe 'previous_state' do
       it 'is set to the last finished build state on the same branch' do
-        Factory(:build, state: 'failed')
-        Factory(:build).reload.previous_state.should == 'failed'
+        create(:build, state: 'failed')
+        create(:build).reload.previous_state.should == 'failed'
       end
 
       it 'is set to the last finished build state on the same branch (disregards non-finished builds)' do
-        Factory(:build, state: 'failed')
-        Factory(:build, state: 'started')
-        Factory(:build).reload.previous_state.should == 'failed'
+        create(:build, state: 'failed')
+        create(:build, state: 'started')
+        create(:build).reload.previous_state.should == 'failed'
       end
 
       it 'is set to the last finished build state on the same branch (disregards other branches)' do
-        Factory(:build, state: 'failed')
-        Factory(:build, state: 'passed', commit: Factory(:commit, branch: 'something'))
-        Factory(:build).reload.previous_state.should == 'failed'
+        create(:build, state: 'failed')
+        create(:build, state: 'passed', commit: create(:commit, branch: 'something'))
+        create(:build).reload.previous_state.should == 'failed'
       end
     end
   end
@@ -177,18 +177,18 @@ describe Build do
   describe 'instance methods' do
     it 'sets its number to the next build number on creation' do
       1.upto(3) do |number|
-        Factory(:build).reload.number.should == number.to_s
+        create(:build).reload.number.should == number.to_s
       end
     end
 
     it 'sets previous_state to nil if no last build exists on the same branch' do
-      build = Factory(:build, commit: Factory(:commit, branch: 'master'))
+      build = create(:build, commit: create(:commit, branch: 'master'))
       build.reload.previous_state.should == nil
     end
 
     it 'sets previous_state to the result of the last build on the same branch if exists' do
-      build = Factory(:build, state: :canceled, commit: Factory(:commit, branch: 'master'))
-      build = Factory(:build, commit: Factory(:commit, branch: 'master'))
+      build = create(:build, state: :canceled, commit: create(:commit, branch: 'master'))
+      build = create(:build, commit: create(:commit, branch: 'master'))
       build.reload.previous_state.should == 'canceled'
     end
 
@@ -205,7 +205,7 @@ describe Build do
           }
 
           config = { 'env' => env }
-          build = Factory(:build, config: config)
+          build = create(:build, config: config)
 
           build.config.should == {
             env: [["ONE=1 TWO=2", "FOO=bar BAR=baz"]],
@@ -218,7 +218,7 @@ describe Build do
             'global' => ['FOO=bar']
           }
           config = { 'env' => env }
-          build = Factory(:build, config: config)
+          build = create(:build, config: config)
 
           build.config.should == {
             env: [['FOO=bar']],
@@ -232,7 +232,7 @@ describe Build do
             'matrix' => [['BAR=baz', 'BAZ=qux'], 'QUX=foo']
           }
           config = { 'env' => env }
-          build = Factory(:build, config: config)
+          build = create(:build, config: config)
 
           build.config.should == {
             env: [
@@ -250,7 +250,7 @@ describe Build do
       end
 
       it 'deep_symbolizes keys on write' do
-        build = Factory(:build, config: { 'foo' => { 'bar' => 'bar' } })
+        build = create(:build, config: { 'foo' => { 'bar' => 'bar' } })
         build.config[:foo][:bar].should == 'bar'
       end
 
@@ -261,7 +261,7 @@ describe Build do
         }
 
         config = { 'env' => env }
-        build = Factory(:build, config: config)
+        build = create(:build, config: config)
 
         build.config.should == {
           env: ["ONE=1 TWO=2"],
@@ -274,7 +274,7 @@ describe Build do
           'global' => ['FOO=bar']
         }
         config = { 'env' => env }
-        build = Factory(:build, config: config)
+        build = create(:build, config: config)
 
         build.config.should == {
           env: nil,
@@ -287,7 +287,7 @@ describe Build do
           'matrix' => ['FOO=bar']
         }
         config = { 'env' => env }
-        build = Factory(:build, config: config)
+        build = create(:build, config: config)
 
         build.config.should == {
           env: ["FOO=bar"]
@@ -300,7 +300,7 @@ describe Build do
           'matrix' => [['BAR=baz', 'BAZ=qux'], 'QUX=foo']
         }
         config = { 'env' => env }
-        build = Factory(:build, config: config)
+        build = create(:build, config: config)
 
         build.config.should == {
           env: [
@@ -312,7 +312,7 @@ describe Build do
       end
 
       it 'tries to deserialize the config itself if a String is returned' do
-        build = Factory(:build)
+        build = create(:build)
         build.stubs(:read_attribute).returns("---\n:foo:\n  :bar: bar")
         Build.logger.expects(:warn)
         build.config[:foo][:bar].should == 'bar'
@@ -321,7 +321,7 @@ describe Build do
 
     describe 'obfuscated config' do
       it 'normalizes env vars which are hashes to strings' do
-        build  = Build.new(repository: Factory(:repository))
+        build  = Build.new(repository: create(:repository))
         config = {
           env: [[build.repository.key.secure.encrypt('BAR=barbaz'), 'FOO=foo'], [{ONE: 1, TWO: '2'}]]
         }
@@ -333,7 +333,7 @@ describe Build do
       end
 
       it 'leaves regular vars untouched' do
-        build = Build.new(repository: Factory(:repository))
+        build = Build.new(repository: create(:repository))
         build.config = { rvm: ['1.8.7'], env: ['FOO=foo'] }
 
         build.obfuscated_config.should == {
@@ -343,7 +343,7 @@ describe Build do
       end
 
       it 'obfuscates env vars' do
-        build  = Build.new(repository: Factory(:repository))
+        build  = Build.new(repository: create(:repository))
         config = {
           rvm: ['1.8.7'],
           env: [[build.repository.key.secure.encrypt('BAR=barbaz'), 'FOO=foo'], 'BAR=baz']
@@ -357,7 +357,7 @@ describe Build do
       end
 
       it 'obfuscates env vars which are not in nested array' do
-        build  = Build.new(repository: Factory(:repository))
+        build  = Build.new(repository: create(:repository))
         config = {
           rvm: ['1.8.7'],
           env: [build.repository.key.secure.encrypt('BAR=barbaz')]
@@ -371,20 +371,20 @@ describe Build do
       end
 
       it 'works with nil values' do
-        build  = Build.new(repository: Factory(:repository))
+        build  = Build.new(repository: create(:repository))
         build.config = { rvm: ['1.8.7'] }
         build.config[:env] = [[nil, {secure: ''}]]
         build.obfuscated_config.should == { rvm: ['1.8.7'], env:  [''] }
       end
 
       it 'does not make an empty env key an array but leaves it empty' do
-        build  = Build.new(repository: Factory(:repository))
+        build  = Build.new(repository: create(:repository))
         build.config = { rvm: ['1.8.7'], env:  nil }
         build.obfuscated_config.should == { rvm: ['1.8.7'], env:  nil }
       end
 
       it 'removes source key' do
-        build  = Build.new(repository: Factory(:repository))
+        build  = Build.new(repository: create(:repository))
         build.config = { rvm: ['1.8.7'], source_key: '1234' }
         build.obfuscated_config.should == { rvm: ['1.8.7'] }
       end
@@ -392,66 +392,66 @@ describe Build do
 
     describe :pending? do
       it 'returns true if the build is finished' do
-        build = Factory(:build, state: :finished)
+        build = create(:build, state: :finished)
         build.pending?.should be_false
       end
 
       it 'returns true if the build is not finished' do
-        build = Factory(:build, state: :started)
+        build = create(:build, state: :started)
         build.pending?.should be_true
       end
     end
 
     describe :passed? do
       it 'passed? returns true if state equals :passed' do
-        build = Factory(:build, state: :passed)
+        build = create(:build, state: :passed)
         build.passed?.should be_true
       end
 
       it 'passed? returns true if result does not equal :passed' do
-        build = Factory(:build, state: :failed)
+        build = create(:build, state: :failed)
         build.passed?.should be_false
       end
     end
 
     describe :color do
       it 'returns "green" if the build has passed' do
-        build = Factory(:build, state: :passed)
+        build = create(:build, state: :passed)
         build.color.should == 'green'
       end
 
       it 'returns "red" if the build has failed' do
-        build = Factory(:build, state: :failed)
+        build = create(:build, state: :failed)
         build.color.should == 'red'
       end
 
       it 'returns "yellow" if the build is pending' do
-        build = Factory(:build, state: :started)
+        build = create(:build, state: :started)
         build.color.should == 'yellow'
       end
     end
 
     it 'saves event_type before create' do
-      build = Factory(:build,  request: Factory(:request, event_type: 'pull_request'))
+      build = create(:build,  request: create(:request, event_type: 'pull_request'))
       build.event_type.should == 'pull_request'
 
-      build = Factory(:build,  request: Factory(:request, event_type: 'push'))
+      build = create(:build,  request: create(:request, event_type: 'push'))
       build.event_type.should == 'push'
     end
 
     it 'saves pull_request_title before create' do
       payload = { 'pull_request' => { 'title' => 'A pull request' } }
-      build = Factory(:build,  request: Factory(:request, event_type: 'pull_request', payload: payload))
+      build = create(:build,  request: create(:request, event_type: 'pull_request', payload: payload))
       build.pull_request_title.should == 'A pull request'
     end
 
     it 'saves branch before create' do
-      build = Factory(:build,  commit: Factory(:commit, branch: 'development'))
+      build = create(:build,  commit: create(:commit, branch: 'development'))
       build.branch.should == 'development'
     end
 
     describe 'reset' do
-      let(:build) { Factory(:build, state: 'finished') }
+      let(:build) { create(:build, state: 'finished') }
 
       before :each do
         build.matrix.each { |job| job.stubs(:reset) }

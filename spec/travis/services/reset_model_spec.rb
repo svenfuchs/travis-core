@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Travis::Services::ResetModel do
   include Support::ActiveRecord
 
-  let(:user) { User.first || Factory(:user) }
+  let(:user) { User.first || create(:user) }
 
   before :each do
     Travis.config.roles = {}
@@ -11,7 +11,7 @@ describe Travis::Services::ResetModel do
 
   describe 'given a job_id' do
     let(:service) { described_class.new(user, job_id: job.id, token: 'token') }
-    let(:job)     { Factory(:test, state: :passed) }
+    let(:job)     { create(:test, state: :passed) }
 
     before :each do
       service.stubs(:service).with(:find_job, id: job.id).returns(stub(run: job))
@@ -41,7 +41,7 @@ describe Travis::Services::ResetModel do
 
   describe 'given a build_id' do
     let(:service) { described_class.new(user, build_id: build.id, token: 'token') }
-    let(:build)   { Factory(:build, state: 'passed') }
+    let(:build)   { create(:build, state: 'passed') }
 
     before :each do
       service.stubs(:service).with(:find_build, id: build.id).returns(stub(run: build))

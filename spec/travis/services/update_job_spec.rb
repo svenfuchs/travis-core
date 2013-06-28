@@ -5,8 +5,8 @@ describe Travis::Services::UpdateJob do
 
   let(:service) { described_class.new(event: event, data: payload) }
   let(:payload) { WORKER_PAYLOADS["job:test:#{event}"].merge('id' => job.id) }
-  let(:build)   { Factory(:build, state: :created, started_at: nil, finished_at: nil) }
-  let(:job)     { Factory(:test, source: build, state: :started, started_at: nil, finished_at: nil) }
+  let(:build)   { create(:build, state: :created, started_at: nil, finished_at: nil) }
+  let(:job)     { create(:test, source: build, state: :started, started_at: nil, finished_at: nil) }
 
   before :each do
     build.matrix.delete_all

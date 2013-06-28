@@ -3,9 +3,9 @@ require 'spec_helper'
 describe Travis::Services::FindHooks do
   include Support::ActiveRecord
 
-  let(:user)    { User.first || Factory(:user) }
-  let(:repo)    { Factory(:repository) }
-  let(:push_repo) { Factory(:repository, name: 'push-repo') }
+  let(:user)    { User.first || create(:user) }
+  let(:repo)    { create(:repository) }
+  let(:push_repo) { create(:repository, name: 'push-repo') }
   let(:service) { described_class.new(user, params) }
 
   before :each do

@@ -52,7 +52,7 @@ end
 # describe 'Travis::Api::V0::Event::Build using Travis::Services::Builds::FindOne' do
 #   include Support::ActiveRecord
 #
-#   let!(:record) { Factory(:build) }
+#   let!(:record) { create(:build) }
 #   let(:build)   { Travis::Services::Builds::FindOne.new(nil, :id => record.id).run }
 #   let(:data)    { Travis::Api::V0::Event::Build.new(build).data }
 #

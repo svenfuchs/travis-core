@@ -125,7 +125,7 @@ describe Travis::Github::Services::SyncUser::Repositories::Instrument do
   let(:publisher) { Travis::Notification::Publisher::Memory.new }
   let(:events)    { publisher.events }
 
-  let(:user)      { Factory(:user, login: 'sven', github_oauth_token: '123456') }
+  let(:user)      { create(:user, login: 'sven', github_oauth_token: '123456') }
   let(:data)      { [{ 'name' => 'minimal', 'owner' => { 'login' => 'sven' }, 'permissions' => { 'admin' => true }, 'private' => false }] }
 
   before :each do

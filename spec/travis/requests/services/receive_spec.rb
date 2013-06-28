@@ -6,7 +6,7 @@ require 'spec_helper'
 describe Travis::Requests::Services::Receive do
   include Support::ActiveRecord
 
-  let(:owner)   { User.first || Factory(:user) }
+  let(:owner)   { User.first || create(:user) }
   let(:service) { described_class.new(nil, params) }
   let(:payload) { JSON.parse(GITHUB_PAYLOADS['gem-release']) }
   let(:request) { service.run }
@@ -101,7 +101,7 @@ describe Travis::Requests::Services::Receive do
       type  = 'user'
 
       describe 'if the user exists' do
-        before(:each) { Factory(:user, :login => login) }
+        before(:each) { create(:user, :login => login) }
         it_should_behave_like 'a created request', type, login
         it_should_behave_like 'does not create a user'
       end
@@ -120,7 +120,7 @@ describe Travis::Requests::Services::Receive do
       type  = 'organization'
 
       describe 'if the organization exists' do
-        before(:each) { Factory(:org, :login => login) }
+        before(:each) { create(:org, :login => login) }
         it_should_behave_like 'a created request', type, login
         it_should_behave_like 'does not create an organization'
       end
@@ -146,7 +146,7 @@ describe Travis::Requests::Services::Receive do
       end
 
       describe 'if the organization exists' do
-        before(:each) { Factory(:org, :login => login) }
+        before(:each) { create(:org, :login => login) }
         it_should_behave_like 'a created request', type, login
         it_should_behave_like 'does not create an organization'
 

@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Build, 'denormalization' do
   include Support::ActiveRecord
 
-  let(:build) { Factory(:build, state: :started, duration: 30) }
+  let(:build) { create(:build, state: :started, duration: 30) }
 
   describe 'on build:started' do
     before :each do

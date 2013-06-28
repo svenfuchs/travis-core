@@ -4,7 +4,7 @@ describe Log do
   include Support::ActiveRecord
 
   let!(:log)  { job.log }
-  let(:job)   { Factory.create(:test, log: Factory.create(:log, content: '')) }
+  let(:job)   { create(:test, log: create(:log, content: '')) }
   let(:lines) { ["line 1\n", "line 2\n", 'line 3'] }
 
   describe 'class methods' do

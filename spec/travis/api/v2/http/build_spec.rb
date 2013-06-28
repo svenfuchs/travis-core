@@ -77,7 +77,7 @@ end
 describe 'Travis::Api::V2::Http::Build using Travis::Services::Builds::FindOne' do
   include Support::ActiveRecord
 
-  let!(:record) { Factory(:build) }
+  let!(:record) { create(:build) }
   let(:build)   { Travis.run_service(:find_build, nil, :id => record.id) }
   let(:data)    { Travis::Api::V2::Http::Build.new(build).data }
 

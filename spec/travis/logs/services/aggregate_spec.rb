@@ -4,7 +4,7 @@ describe Travis::Logs::Services::Aggregate do
   include Support::ActiveRecord
 
   let!(:log)    { job.log }
-  let(:job)     { Factory.create(:test, log: Factory.create(:log, content: '')) }
+  let(:job)     { create(:test, log: create(:log, content: '')) }
   let(:lines)   { ["line 1\n", "line 2\n", 'Done. Build script exited with: 0'] }
   let(:service) { described_class.new }
 

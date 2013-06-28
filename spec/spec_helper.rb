@@ -16,6 +16,8 @@ require 'mocha'
 require 'stringio'
 require 'logger'
 require 'patches/rspec_hash_diff'
+require 'factory_girl'
+require 'database_cleaner'
 
 Travis.logger = Logger.new(StringIO.new)
 Travis.services = Travis::Services
@@ -31,6 +33,7 @@ RSpec.configure do |c|
   c.run_all_when_everything_filtered = true
   c.backtrace_clean_patterns.clear
 
+  c.include FactoryGirl::Syntax::Methods
   c.include Travis::Support::Testing::Webmock
 
   c.before :each do
@@ -47,6 +50,7 @@ end
 
 # this keeps Model.inspect from exploding which happens for
 # expected method calls in tests that do not use a db connection
+require 'protected_attributes'
 require 'active_record'
 ActiveRecord::Base.class_eval do
   def self.inspect

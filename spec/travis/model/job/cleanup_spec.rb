@@ -3,13 +3,13 @@
 # describe Job::Cleanup do
 #   include Support::ActiveRecord
 #
-#   let(:job) { Factory(:test) }
+#   let(:job) { create(:test) }
 #
 #   describe 'scopes' do
 #     let! :jobs do
-#       [ Factory(:test, :state => :created,  :created_at => Time.now.utc - Travis.config.jobs.retry.after - 60),
-#         Factory(:test, :state => :started,  :created_at => Time.now.utc - Travis.config.jobs.retry.after - 120),
-#         Factory(:test, :state => :finished, :created_at => Time.now.utc - Travis.config.jobs.retry.after + 10) ]
+#       [ create(:test, :state => :created,  :created_at => Time.now.utc - Travis.config.jobs.retry.after - 60),
+#         create(:test, :state => :started,  :created_at => Time.now.utc - Travis.config.jobs.retry.after - 120),
+#         create(:test, :state => :finished, :created_at => Time.now.utc - Travis.config.jobs.retry.after + 10) ]
 #     end
 #
 #     describe :unfinished do

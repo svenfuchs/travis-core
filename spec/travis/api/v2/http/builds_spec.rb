@@ -57,12 +57,12 @@ end
 describe 'Travis::Api::V2::Http::Builds using Travis::Services::Builds::FindAll' do
   include Support::ActiveRecord
 
-  let!(:repo)  { Factory(:repository) }
+  let!(:repo)  { create(:repository) }
   let(:builds) { Travis.run_service(:find_builds, nil, :event_type => 'push', :repository_id => repo.id) }
   let(:data)   { Travis::Api::V2::Http::Builds.new(builds).data }
 
   before :each do
-    3.times { Factory(:build, :repository => repo) }
+    3.times { create(:build, :repository => repo) }
   end
 
   it 'queries' do

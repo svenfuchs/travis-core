@@ -1,4 +1,7 @@
 module Scenario
+  include FactoryGirl::Syntax::Methods
+  extend FactoryGirl::Syntax::Methods
+
   class << self
     def default
       minimal, enginex = repositories :minimal, :enginex
@@ -91,15 +94,15 @@ module Scenario
     end
 
     def repositories(*names)
-      names.map { |name| Factory(name) }
+      names.map { |name| create(name) }
     end
 
     def build(attributes)
       commit = attributes.delete(:commit)
       jobs  = attributes.delete(:jobs)
-      commit = Factory(:commit, commit)
+      commit = create(:commit, commit)
 
-      build  = Factory(:build, attributes.merge(:commit => commit))
+      build  = create(:build, attributes.merge(:commit => commit))
       build.matrix.each_with_index do |job, ix|
         job.update_attributes!(jobs[ix] || {})
       end

@@ -3,8 +3,8 @@ require 'spec_helper'
 describe Travis::Services::FindBuilds do
   include Support::ActiveRecord
 
-  let(:repo)    { Factory(:repository, :owner_name => 'travis-ci', :name => 'travis-core') }
-  let!(:build)  { Factory(:build, :repository => repo, :state => :finished, :number => 1) }
+  let(:repo)    { create(:repository, :owner_name => 'travis-ci', :name => 'travis-core') }
+  let!(:build)  { create(:build, :repository => repo, :state => :finished, :number => 1) }
   let(:service) { described_class.new(stub('user'), params) }
 
   attr_reader :params
@@ -27,8 +27,8 @@ describe Travis::Services::FindBuilds do
 
     it 'finds builds with a given number, scoped by repository' do
       @params = { :repository_id => repo.id, :number => 1 }
-      Factory(:build, :repository => Factory(:repository), :state => :finished, :number => 1)
-      Factory(:build, :repository => repo, :state => :finished, :number => 2)
+      create(:build, :repository => create(:repository), :state => :finished, :number => 1)
+      create(:build, :repository => repo, :state => :finished, :number => 2)
       service.run.should == [build]
     end
 
@@ -39,7 +39,7 @@ describe Travis::Services::FindBuilds do
 
     it 'scopes to the given repository_id' do
       @params = { :repository_id => repo.id }
-      Factory(:build, :repository => Factory(:repository), :state => :finished)
+      create(:build, :repository => create(:repository), :state => :finished)
       service.run.should == [build]
     end
 
@@ -55,8 +55,8 @@ describe Travis::Services::FindBuilds do
 
     describe 'with pull requests' do
       it 'finds pull requests for event_type=pull_request' do
-        request = Factory(:request, :event_type => 'pull_request')
-        pull_request = Factory(:build, :repository => repo, :state => :finished, :number => 2, :request => request)
+        request = create(:request, :event_type => 'pull_request')
+        pull_request = create(:build, :repository => repo, :state => :finished, :number => 2, :request => request)
         @params = { :event_type => 'pull_request', :repository_id => repo.id }
         service.run.should == [pull_request]
       end
@@ -67,8 +67,8 @@ describe Travis::Services::FindBuilds do
     it 'returns the latest updated_at time' do
       @params = { :repository_id => repo.id }
       Build.delete_all
-      Factory(:build, :repository => repo, :state => :finished, :number => 1, :updated_at => Time.now - 1.hour)
-      Factory(:build, :repository => repo, :state => :finished, :number => 1, :updated_at => Time.now)
+      create(:build, :repository => repo, :state => :finished, :number => 1, :updated_at => Time.now - 1.hour)
+      create(:build, :repository => repo, :state => :finished, :number => 1, :updated_at => Time.now)
       service.updated_at.to_s.should == Time.now.to_s
     end
   end

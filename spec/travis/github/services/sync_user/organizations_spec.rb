@@ -4,7 +4,7 @@ describe Travis::Github::Services::SyncUser::Organizations do
   include Support::ActiveRecord
 
   describe 'run' do
-    let(:user)    { Factory(:user, :login => 'sven', :github_oauth_token => '123456') }
+    let(:user)    { create(:user, :login => 'sven', :github_oauth_token => '123456') }
     let(:action)  { lambda { described_class.new(user).run } }
     let(:data)    { [{ 'id' => 1, 'login' => 'login' }] }
 
@@ -78,7 +78,7 @@ describe Travis::Github::Services::SyncUser::Organizations::Instrument do
   let(:travis)    { Organization.find_by_login('travis-ci') }
   let(:sinatra)   { Organization.find_by_login('sinatra') }
 
-  let(:user)      { Factory(:user, login: 'sven', github_oauth_token: '123456') }
+  let(:user)      { create(:user, login: 'sven', github_oauth_token: '123456') }
   let(:data)      { [ { 'id' => 1, 'name' => 'Travis CI', 'login' => 'travis-ci' }, { 'id' => 2, 'name' => 'Sinatra', 'login' => 'sinatra' } ] }
 
   before :each do

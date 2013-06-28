@@ -4,9 +4,9 @@ describe Repository do
   include Support::ActiveRecord
 
   describe '#last_completed_build' do
-    let(:repo) {  Factory(:repository, name: 'foobarbaz', builds: [build1, build2]) }
-    let(:build1) { Factory(:build, finished_at: 1.hour.ago, state: :passed) }
-    let(:build2) { Factory(:build, finished_at: Time.now, state: :failed) }
+    let(:repo) {  create(:repository, name: 'foobarbaz', builds: [build1, build2]) }
+    let(:build1) { create(:build, finished_at: 1.hour.ago, state: :passed) }
+    let(:build2) { create(:build, finished_at: Time.now, state: :failed) }
 
     before do
       build1.update_attributes(branch: 'master')
@@ -24,7 +24,7 @@ describe Repository do
 
   describe '#regenerate_key!' do
     it 'regenerates key' do
-      repo = Factory(:repository)
+      repo = create(:repository)
 
       expect { repo.regenerate_key! }.to change { repo.key.private_key }
     end
@@ -32,7 +32,7 @@ describe Repository do
 
   describe 'validates' do
     it 'uniqueness of :owner_name/:name' do
-      existing = Factory(:repository)
+      existing = create(:repository)
       repo = Repository.new(existing.attributes.except('last_build_status'))
       repo.should_not be_valid
       repo.errors['name'].should == ['has already been taken']
@@ -41,16 +41,16 @@ describe Repository do
 
   describe 'associations' do
     describe 'owner' do
-      let(:user) { Factory(:user) }
-      let(:org)  { Factory(:org)  }
+      let(:user) { create(:user) }
+      let(:org)  { create(:org)  }
 
       it 'can be a user' do
-        repo = Factory(:repository, owner: user)
+        repo = create(:repository, owner: user)
         repo.reload.owner.should == user
       end
 
       it 'can be an organization' do
-        repo = Factory(:repository, owner: org)
+        repo = create(:repository, owner: org)
         repo.reload.owner.should == org
       end
     end
@@ -58,7 +58,7 @@ describe Repository do
 
   describe 'class methods' do
     describe 'find_by' do
-      let(:minimal) { Factory(:repository) }
+      let(:minimal) { create(:repository) }
 
       it "should find a repository by it's id" do
         Repository.find_by(id: minimal.id).id.should == minimal.id
@@ -77,8 +77,8 @@ describe Repository do
 
     describe 'timeline' do
       it 'sorts the most repository with the most recent build to the top' do
-        one   = Factory(:repository, name: 'one',   last_build_started_at: '2011-11-11')
-        two   = Factory(:repository, name: 'two',   last_build_started_at: '2011-11-12')
+        one   = create(:repository, name: 'one',   last_build_started_at: '2011-11-11')
+        two   = create(:repository, name: 'two',   last_build_started_at: '2011-11-12')
 
         repositories = Repository.timeline.all
         repositories.first.id.should == two.id
@@ -89,9 +89,9 @@ describe Repository do
 
     describe 'with_builds' do
       it 'gets only projects with existing builds' do
-        one   = Factory(:repository, name: 'one',   last_build_started_at: '2011-11-11', last_build_id: nil)
-        two   = Factory(:repository, name: 'two',   last_build_started_at: '2011-11-12', last_build_id: 101)
-        three = Factory(:repository, name: 'three', last_build_started_at: nil, last_build_id: 100)
+        one   = create(:repository, name: 'one',   last_build_started_at: '2011-11-11', last_build_id: nil)
+        two   = create(:repository, name: 'two',   last_build_started_at: '2011-11-12', last_build_id: 101)
+        three = create(:repository, name: 'three', last_build_started_at: nil, last_build_id: 100)
 
         repositories = Repository.with_builds.all
         repositories.map(&:id).sort.should == [two, three].map(&:id).sort
@@ -99,8 +99,8 @@ describe Repository do
     end
 
     describe 'active' do
-      let(:active)   { Factory(:repository, active: true) }
-      let(:inactive) { Factory(:repository, active: false) }
+      let(:active)   { create(:repository, active: true) }
+      let(:inactive) { create(:repository, active: false) }
 
       it 'contains active repositories' do
         Repository.active.should include(active)
@@ -113,8 +113,8 @@ describe Repository do
 
     describe 'search' do
       before(:each) do
-        Factory(:repository, name: 'repo 1', last_build_started_at: '2011-11-11')
-        Factory(:repository, name: 'repo 2', last_build_started_at: '2011-11-12')
+        create(:repository, name: 'repo 1', last_build_started_at: '2011-11-11')
+        create(:repository, name: 'repo 2', last_build_started_at: '2011-11-12')
       end
 
       it 'performs searches case-insensitive' do
@@ -131,10 +131,10 @@ describe Repository do
     end
 
     describe 'by_member' do
-      let(:user) { Factory(:user) }
-      let(:org)  { Factory(:org) }
-      let(:user_repo) { Factory(:repository, owner: user)}
-      let(:org_repo)  { Factory(:repository, owner: org, name: 'globalize')}
+      let(:user) { create(:user) }
+      let(:org)  { create(:org) }
+      let(:user_repo) { create(:repository, owner: user)}
+      let(:org_repo)  { create(:repository, owner: org, name: 'globalize')}
 
       before do
         Permission.create!(user: user, repository: user_repo, pull: true, push: true)
@@ -148,8 +148,8 @@ describe Repository do
 
     describe 'counts_by_owner_names' do
       let!(:repositories) do
-        Factory(:repository, owner_name: 'svenfuchs', name: 'minimal')
-        Factory(:repository, owner_name: 'travis-ci', name: 'travis-ci')
+        create(:repository, owner_name: 'svenfuchs', name: 'minimal')
+        create(:repository, owner_name: 'travis-ci', name: 'travis-ci')
       end
 
       it 'returns repository counts per owner_name for the given owner_names' do
@@ -174,17 +174,17 @@ describe Repository do
   end
 
   it "last_build returns the most recent build" do
-    repo = Factory(:repository)
+    repo = create(:repository)
     attributes = { repository: repo, state: 'finished' }
-    Factory(:build, attributes)
-    Factory(:build, attributes)
-    build = Factory(:build, attributes)
+    create(:build, attributes)
+    create(:build, attributes)
+    build = create(:build, attributes)
 
     repo.last_build.id.should == build.id
   end
 
   describe "keys" do
-    let(:repo) { Factory(:repository) }
+    let(:repo) { create(:repository) }
 
     it "should return the public key" do
       repo.public_key.should == repo.key.public_key
@@ -197,11 +197,11 @@ describe Repository do
   end
 
   describe 'branches' do
-    let(:repo) { Factory(:repository) }
+    let(:repo) { create(:repository) }
 
     it 'returns branches for the given repository' do
       %w(master production).each do |branch|
-        2.times { Factory(:build, repository: repo, commit: Factory(:commit, branch: branch)) }
+        2.times { create(:build, repository: repo, commit: create(:commit, branch: branch)) }
       end
       repo.branches.sort.should == %w(master production)
     end
@@ -212,13 +212,13 @@ describe Repository do
   end
 
   describe 'last_finished_builds_by_branches' do
-    let(:repo) { Factory(:repository) }
+    let(:repo) { create(:repository) }
 
     it 'retrieves last builds on all branches' do
       Build.delete_all
-      old = Factory(:build, repository: repo, finished_at: 1.hour.ago,      state: 'finished', commit: Factory(:commit, branch: 'one'))
-      one = Factory(:build, repository: repo, finished_at: 1.hour.from_now, state: 'finished', commit: Factory(:commit, branch: 'one'))
-      two = Factory(:build, repository: repo, finished_at: 1.hour.from_now, state: 'finished', commit: Factory(:commit, branch: 'two'))
+      old = create(:build, repository: repo, finished_at: 1.hour.ago,      state: 'finished', commit: create(:commit, branch: 'one'))
+      one = create(:build, repository: repo, finished_at: 1.hour.from_now, state: 'finished', commit: create(:commit, branch: 'one'))
+      two = create(:build, repository: repo, finished_at: 1.hour.from_now, state: 'finished', commit: create(:commit, branch: 'two'))
 
       builds = repo.last_finished_builds_by_branches
       builds.size.should == 2

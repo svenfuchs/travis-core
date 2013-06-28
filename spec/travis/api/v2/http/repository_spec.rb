@@ -25,7 +25,7 @@ end
 describe 'Travis::Api::V2::Http::Repository using Travis::Services::FindRepo' do
   include Support::ActiveRecord
 
-  let!(:record) { Factory(:repository) }
+  let!(:record) { create(:repository) }
   let(:repo)    { Travis.run_service(:find_repo, :id => record.id) }
   let(:data)    { Travis::Api::V2::Http::Repository.new(repo).data }
 

@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Travis::Services::FindRepo do
   include Support::ActiveRecord
 
-  let!(:repo)   { Factory(:repository, :owner_name => 'travis-ci', :name => 'travis-core') }
+  let!(:repo)   { create(:repository, :owner_name => 'travis-ci', :name => 'travis-core') }
   let(:service) { described_class.new(stub('user'), params) }
 
   attr_reader :params

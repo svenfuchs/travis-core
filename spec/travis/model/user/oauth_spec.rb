@@ -3,7 +3,7 @@ require 'spec_helper'
 describe User::Oauth do
   include Support::ActiveRecord
 
-  let(:user)    { Factory(:user, :github_oauth_token => 'token') }
+  let(:user)    { create(:user, :github_oauth_token => 'token') }
   let(:payload) { GITHUB_PAYLOADS[:oauth] }
 
   describe 'find_or_create_by' do

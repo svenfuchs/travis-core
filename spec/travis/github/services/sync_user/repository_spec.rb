@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Travis::Github::Services::SyncUser::Repository do
   include Support::ActiveRecord
 
-  let(:user)    { Factory(:user) }
+  let(:user)    { create(:user) }
   let(:run)     { lambda { described_class.new(user, repo).run } }
 
   describe 'find or create repository' do

@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Travis::Github::Services::SyncUser do
   include Support::ActiveRecord
 
-  let(:user)    { Factory(:user) }
+  let(:user)    { create(:user) }
   let(:service) { described_class.new(user) }
 
   before do

@@ -3,5 +3,5 @@
 # describe Build::Compat do
 #   include Support::ActiveRecord
 #
-#   let(:build) { Factory(:build, :result => nil) }
+#   let(:build) { create(:build, :result => nil) }
 # end

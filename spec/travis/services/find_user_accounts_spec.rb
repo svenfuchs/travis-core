@@ -3,15 +3,15 @@ require 'spec_helper'
 describe Travis::Services::FindUserAccounts do
   include Support::ActiveRecord
 
-  let!(:sven)    { Factory(:user, :login => 'sven') }
-  let!(:travis)  { Factory(:org, :login => 'travis-ci') }
-  let!(:sinatra) { Factory(:org, :login => 'sinatra') }
+  let!(:sven)    { create(:user, :login => 'sven') }
+  let!(:travis)  { create(:org, :login => 'travis-ci') }
+  let!(:sinatra) { create(:org, :login => 'sinatra') }
 
   let!(:repos) do
-    Factory(:repository, :owner => sven, :owner_name => 'sven', :name => 'minimal')
-    Factory(:repository, :owner => travis, :owner_name => 'travis-ci', :name => 'travis-ci')
-    Factory(:repository, :owner => travis, :owner_name => 'travis-ci', :name => 'travis-core')
-    Factory(:repository, :owner => sinatra, :owner_name => 'sinatra', :name => 'sinatra')
+    create(:repository, :owner => sven, :owner_name => 'sven', :name => 'minimal')
+    create(:repository, :owner => travis, :owner_name => 'travis-ci', :name => 'travis-ci')
+    create(:repository, :owner => travis, :owner_name => 'travis-ci', :name => 'travis-core')
+    create(:repository, :owner => sinatra, :owner_name => 'sinatra', :name => 'sinatra')
   end
 
   let(:service) { described_class.new(sven, params || {}) }

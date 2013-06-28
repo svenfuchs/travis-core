@@ -24,7 +24,7 @@ describe Job::Tagging do
     log
   end
 
-  let(:job) { Factory(:test) }
+  let(:job) { create(:test) }
 
   before :each do
     Job::Tagging.stubs(:rules).returns(rules)

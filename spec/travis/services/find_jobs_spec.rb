@@ -3,8 +3,8 @@ require 'spec_helper'
 describe Travis::Services::FindJobs do
   include Support::ActiveRecord
 
-  let(:repo)    { Factory(:repository) }
-  let!(:job)    { Factory(:test, :repository => repo, :state => :created, :queue => 'builds.linux') }
+  let(:repo)    { create(:repository) }
+  let!(:job)    { create(:test, :repository => repo, :state => :created, :queue => 'builds.linux') }
   let(:service) { described_class.new(stub('user'), params) }
 
   attr_reader :params
@@ -26,13 +26,13 @@ describe Travis::Services::FindJobs do
     end
 
     it 'finds jobs by state' do
-      build = Factory(:build)
+      build = create(:build)
 
       Job::Test.destroy_all
 
-      started = Factory(:test, :state => :started, :source => build)
-      passed  = Factory(:test, :state => :passed,  :source => build)
-      created = Factory(:test, :state => :created, :source => build)
+      started = create(:test, :state => :started, :source => build)
+      passed  = create(:test, :state => :passed,  :source => build)
+      created = create(:test, :state => :created, :source => build)
 
       @params = { :state => ['created', 'passed'] }
       service.run.sort_by(&:id).should == [created, passed].sort_by(&:id)
@@ -45,8 +45,8 @@ describe Travis::Services::FindJobs do
 
       @params = { :queue => 'builds.linux' }
       Job.delete_all
-      Factory(:test, :repository => repo, :state => :queued, :queue => 'build.common', :updated_at => Time.now - 1.hour)
-      Factory(:test, :repository => repo, :state => :queued, :queue => 'build.common', :updated_at => Time.now)
+      create(:test, :repository => repo, :state => :queued, :queue => 'build.common', :updated_at => Time.now - 1.hour)
+      create(:test, :repository => repo, :state => :queued, :queue => 'build.common', :updated_at => Time.now)
       service.updated_at.to_s.should == Time.now.to_s
     end
   end

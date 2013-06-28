@@ -22,9 +22,9 @@ describe Travis::Features do
       Travis::Features.deactivate_all(:feature)
     end
 
-    let(:repository) {Factory(:repository)}
-    let!(:user) {Factory(:user)}
-    let(:organization) {Factory(:org)}
+    let(:repository) {create(:repository)}
+    let!(:user) {create(:user)}
+    let(:organization) {create(:org)}
 
     it "should return true if the repository's owner is activated" do
       expect {
