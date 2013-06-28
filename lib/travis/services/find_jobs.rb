@@ -29,8 +29,8 @@ module Travis
 
         def preload(jobs)
           jobs = jobs.includes(:commit)
-          ActiveRecord::Associations::Preloader.new(jobs, :log, :select => [:id, :job_id]).run
-          ActiveRecord::Associations::Preloader.new(jobs, :repository, :select => [:id, :owner_name, :name]).run
+          ActiveRecord::Associations::Preloader.new(jobs, :log, Job.unscoped.select([:id, :job_id])).run
+          ActiveRecord::Associations::Preloader.new(jobs, :repository, Job.unscoped.select([:id, :owner_name, :name])).run
           jobs
         end
     end
