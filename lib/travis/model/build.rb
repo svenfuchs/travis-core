@@ -305,7 +305,7 @@ class Build < ActiveRecord::Base
 
 
     def normalize_config(config)
-      config = config.deep_symbolize_keys
+      config = config._deep_symbolize_keys
       if config[:env]
         result = normalize_env_values(config[:env])
         config[:env] = result[:env]

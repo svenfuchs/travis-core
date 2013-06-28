@@ -21,7 +21,7 @@ describe Travis::Addons::Pusher::Task do
 
   it 'logs Pusher errors and reraises' do
     channel.expects(:trigger).raises(Pusher::Error.new('message'))
-    payload = Travis::Api.data(test, for: 'pusher', type: 'job/started', version: 'v1').deep_symbolize_keys
+    payload = Travis::Api.data(test, for: 'pusher', type: 'job/started', version: 'v1')._deep_symbolize_keys
     Travis.logger.expects(:error).with("[addons:pusher] Could not send event due to Pusher::Error: message, event=job:started, payload: #{payload.inspect}")
 
     expect {

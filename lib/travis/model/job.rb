@@ -1,5 +1,5 @@
 require 'active_record'
-require 'active_support/core_ext/hash/deep_dup'
+require 'active_support/core_ext/object/deep_dup'
 
 # Job models a unit of work that is run on a remote worker.
 #
@@ -88,7 +88,7 @@ class Job < ActiveRecord::Base
   end
 
   def config=(config)
-    super(config ? config.deep_symbolize_keys : {})
+    super(config ? config._deep_symbolize_keys : {})
   end
 
   def obfuscated_config

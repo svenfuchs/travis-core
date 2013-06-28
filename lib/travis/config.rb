@@ -62,7 +62,7 @@ module Travis
       end
 
       def normalize(data)
-        data.deep_symbolize_keys!
+        data._deep_symbolize_keys!
         if database_from_env
           data[:database] ||= {}
           data[:database].merge! database_from_env do |key, old_value, new_value|

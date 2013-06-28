@@ -21,7 +21,7 @@ class Worker
 
     def find(id)
       attrs = redis.get(key(id))
-      Worker.new(id, MultiJson.load(attrs).deep_symbolize_keys) if attrs
+      Worker.new(id, MultiJson.load(attrs)._deep_symbolize_keys) if attrs
     end
 
     def update(id, attrs)
@@ -60,7 +60,7 @@ class Worker
       end
 
       def normalize(attrs)
-        attrs = attrs.deep_symbolize_keys
+        attrs = attrs._deep_symbolize_keys
         host, name = attrs.values_at(:host, :name)
         attrs[:full_name] ||= [host, name].join(':')
         attrs.slice(:full_name, :state, :payload)

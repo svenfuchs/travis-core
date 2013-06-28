@@ -38,8 +38,8 @@ module Travis
     attr_reader :payload, :params
 
     def initialize(payload, params = {})
-      @payload = payload.deep_symbolize_keys
-      @params  = params.deep_symbolize_keys
+      @payload = payload._deep_symbolize_keys
+      @params  = params._deep_symbolize_keys
     end
 
     def run

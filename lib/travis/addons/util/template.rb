@@ -9,7 +9,7 @@ module Travis
 
         def initialize(template, data)
           @template = template
-          @data = data.deep_symbolize_keys
+          @data = data._deep_symbolize_keys
         end
 
         def interpolate
