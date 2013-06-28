@@ -22,7 +22,10 @@ module Travis
 
             headers['X-MC-Tags'] = Travis.env
 
-            mail(from: from, to: recipients, subject: subject, template_path: 'build')
+            mail(from: from, to: recipients, subject: subject) do |format|
+              format.html { render 'build/finished_email', content_type: 'text/html' }
+              format.text { render 'build/finished_email', content_type: 'text/plain' }
+            end
           end
 
           private
