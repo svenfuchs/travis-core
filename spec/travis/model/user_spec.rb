@@ -1,10 +1,9 @@
 require 'spec_helper'
-require 'support/active_record'
 
 describe User do
   include Support::ActiveRecord
 
-  let(:user)    { FactoryGirl.build(:user) }
+  let(:user)    { Factory(:user, :github_oauth_token => 'token') }
   let(:payload) { GITHUB_PAYLOADS[:oauth] }
 
   describe 'find_or_create_for_oauth' do
@@ -22,9 +21,33 @@ describe User do
     end
   end
 
-  describe 'user_data_from_oauth' do
-    it 'returns required data' do
-      User.user_data_from_oauth(payload).should == GITHUB_OAUTH_DATA
+  describe '#to_json' do
+    it 'returns JSON representation of user' do
+      json = JSON.parse(user.to_json)
+      json['user']['login'].should == 'svenfuchs'
+    end
+  end
+
+  describe 'permission?' do
+    let!(:repo) { Factory(:org, :login => 'travis') }
+
+    it 'given roles and a condition it returns true if the user has a matching permission for this role' do
+      user.permissions.create!(push: true, repository_id: repo.id)
+      user.permission?(['push'], repository_id: repo.id).should be_true
+    end
+
+    it 'given roles and a condition it returns false if the user does not have a matching permission for this role' do
+      user.permissions.create!(pull: true, repository_id: repo.id)
+      user.permission?(['push'], repository_id: repo.id).should be_false
+    end
+
+    it 'given a condition it returns true if the user has a matching permission' do
+      user.permissions.create!(push: true, repository_id: repo.id)
+      user.permission?(repository_id: repo.id).should be_true
+    end
+
+    it 'given a condition it returns true if the user has a matching permission' do
+      user.permission?(repository_id: repo.id).should be_false
     end
   end
 
@@ -46,6 +69,25 @@ describe User do
     end
   end
 
+  describe 'repository_ids' do
+    let!(:travis)  { Factory(:repository, :name => 'travis', :owner => Factory(:org, :name => 'travis')) }
+    let!(:sinatra) { Factory(:repository, :name => 'sinatra', :owner => Factory(:org, :name => 'sinatra')) }
+
+    before :each do
+     user.repositories << travis
+     user.save!
+     user.reload
+    end
+
+    it 'contains the ids of repositories the user is permitted to see' do
+      user.repository_ids.should include(travis.id)
+    end
+
+    it 'does not contain the ids of repositories the user is not permitted to see' do
+      user.repository_ids.should_not include(sinatra.id)
+    end
+  end
+
   describe 'profile_image_hash' do
     it "returns gravatar_id if it's present" do
       user.gravatar_id = '41193cdbffbf06be0cdf231b28c54b18'
@@ -64,71 +106,109 @@ describe User do
     end
   end
 
-  describe 'authenticated_on_github' do
-    let(:user) { User.find_or_create_for_oauth(payload) }
-
-    before do
-      WebMock.stub_request(:get, 'https://api.github.com/user').
-        with(:headers => {'Authorization' => "token #{payload['credentials']['token']}"}).
-        to_return(:status => 200, :body => payload.to_json, :headers => {})
-    end
-
-    it 'should log the user in' do
-      user.authenticated_on_github do
-        GH['/user']['name'].should be == payload['name']
-      end
-    end
-  end
-
-  describe 'authenticate_by_token' do
-    let(:user) { Factory(:user) }
-
+  describe 'authenticate_by' do
     describe 'given a valid token and login' do
       it 'authenticates the user' do
-        User.authenticate_by_token(user.login, user.tokens.first.token).should == user
+        User.authenticate_by('login' => user.login, 'token' => user.tokens.first.token).should == user
       end
     end
 
     describe 'given a wrong token' do
       it 'does not authenticate the user' do
-        User.authenticate_by_token('someone-else', user.tokens.first.token).should be_nil
+        User.authenticate_by('login' => 'someone-else', 'token' => user.tokens.first.token).should be_nil
       end
     end
 
     describe 'given a wrong login' do
       it 'does not authenticate the user' do
-        User.authenticate_by_token(user.login, 'some-other-token').should be_nil
+        User.authenticate_by('login' => user.login, 'token' => 'some-other-token').should be_nil
+      end
+    end
+
+    describe 'with encrypted token' do
+      it 'authenticates the user' do
+        user.tokens.first.update_column :token, 'encrypted-token'
+
+        Travis::Model::EncryptedColumn.any_instance.stubs(:encrypt? => true, :key => 'abcd', :load => '...')
+        Travis::Model::EncryptedColumn.any_instance.expects(:load).with('encrypted-token').returns('a-token')
+
+        User.authenticate_by('login' => user.login, 'token' => 'a-token').should == user
       end
     end
   end
 
-  describe 'github_service_hooks' do
-    let!(:repo) { Factory(:repository, :name => 'safemode', :active => true) }
-
-    let(:data) do
-      [
-        {
-        'name' => 'safemode',
-        'owner' => { 'login' => 'svenfuchs' },
-        'description' => 'the description',
-        '_links' => { 'html' => { 'href' => 'https://github.com/svenfuchs/safemode' }}
-        }
-      ]
-    end
+  describe 'service_hooks' do
+    let(:own_repo)   { Factory(:repository, :name => 'own-repo', :description => 'description', :active => true) }
+    let(:admin_repo) { Factory(:repository, :name => 'admin-repo') }
+    let(:other_repo) { Factory(:repository, :name => 'other-repo') }
+    let(:push_repo) { Factory(:repository, :name => 'push-repo') }
 
     before :each do
-      user.github_oauth_token = 'some-token'
-      Travis::Github.stubs(:repositories_for).returns(data)
+      user.permissions.create! :user => user, :repository => own_repo, :admin => true
+      user.permissions.create! :user => user, :repository => admin_repo, :admin => true
+      user.permissions.create! :user => user, :repository => push_repo, :push => true
+      other_repo
     end
 
-    it "contains the user's service_hooks (i.e. repository data from github)" do
-      service_hook = user.github_service_hooks.first
-      service_hook.uid.should == 'svenfuchs:safemode'
-      service_hook.owner_name.should == 'svenfuchs'
-      service_hook.name.should == 'safemode'
-      service_hook.description.should == 'the description'
-      service_hook.url.should == 'https://github.com/svenfuchs/safemode'
-      service_hook.active.should be_true
+    it "contains repositories where the user has an admin role" do
+      user.service_hooks.should include(own_repo)
+    end
+
+    it "does not contain repositories where the user does not have an admin role" do
+      user.service_hooks.should_not include(other_repo)
+    end
+
+    it "includes all repositories if :all options is passed" do
+      hooks = user.service_hooks(:all => true)
+      hooks.should include(own_repo)
+      hooks.should include(push_repo)
+      hooks.should include(admin_repo)
+      hooks.should_not include(other_repo)
+    end
+  end
+
+  describe 'track_github_scopes' do
+    before { user.save! }
+
+    it "does not resolve github scopes if the token didn't change" do
+      Travis::Github.expects(:scopes_for).never
+      user.save!
+    end
+
+    it "it resolves github scopes if the token did change" do
+      Travis::Github.expects(:scopes_for).with(user).returns(['foo', 'bar'])
+      user.github_oauth_token = 'new_token'
+      user.save!
+      user.github_scopes.should be == ['foo', 'bar']
+    end
+
+    it "it resolves github scopes if they haven't been resolved already" do
+      Travis::Github.expects(:scopes_for).with(user).returns(['foo', 'bar'])
+      user.github_scopes = nil
+      user.save!
+      user.github_scopes.should be == ['foo', 'bar']
+    end
+
+    it 'returns an empty list if the token is missing' do
+      user.github_scopes = ['foo']
+      user.github_oauth_token = nil
+      user.github_scopes.should be_empty
+    end
+  end
+
+  describe 'correct_scopes?' do
+    it "accepts correct scopes" do
+      user.should be_correct_scopes
+    end
+
+    it "complains about missing scopes" do
+      user.github_scopes.pop
+      user.should_not be_correct_scopes
+    end
+
+    it "accepts additional scopes" do
+      user.github_scopes << "foo"
+      user.should be_correct_scopes
     end
   end
 end

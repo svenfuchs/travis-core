@@ -11,35 +11,42 @@ require 'active_record'
 # A repository also has a ServiceHook that can be used to de/activate service
 # hooks on Github.
 class Repository < ActiveRecord::Base
-  autoload :Compat, 'travis/model/repository/compat'
+  autoload :Compat,      'travis/model/repository/compat'
+  autoload :StatusImage, 'travis/model/repository/status_image'
 
   include Compat
 
-  has_many :requests, :dependent => :delete_all
-  has_many :builds, :dependent => :delete_all do
-    def last_result_on(params)
-      last_finished_on_branch(params[:branch]).try(:matrix_result, params)
-    end
-  end
+  has_many :commits, dependent: :delete_all
+  has_many :requests, dependent: :delete_all
+  has_many :builds, dependent: :delete_all
+  has_many :events
+  has_many :permissions
+  has_many :users, through: :permissions
 
-  has_one :last_build,   :class_name => 'Build', :order => 'id DESC', :conditions => { :state  => ['started', 'finished']  }
-  has_one :last_success, :class_name => 'Build', :order => 'id DESC', :conditions => { :result => 0 }
-  has_one :last_failure, :class_name => 'Build', :order => 'id DESC', :conditions => { :result => 1 }
-  has_one :key, :class_name => 'SslKey'
-  belongs_to :owner, :polymorphic => true
+  has_one :last_build, class_name: 'Build', order: 'id DESC'
+  has_one :key, class_name: 'SslKey'
+  belongs_to :owner, polymorphic: true
 
-  validates :name,       :presence => true, :uniqueness => { :scope => :owner_name }
-  validates :owner_name, :presence => true
+  validates :name,       presence: true, uniqueness: { scope: :owner_name }
+  validates :owner_name, presence: true
 
   before_create do
     build_key
   end
 
-  delegate :public_key, :to => :key
+  delegate :public_key, to: :key
 
   class << self
     def timeline
       where(arel_table[:last_build_started_at].not_eq(nil)).order(arel_table[:last_build_started_at].desc)
+    end
+
+    def with_builds
+      where(arel_table[:last_build_id].not_eq(nil))
+    end
+
+    def administratable
+      includes(:permissions).where('permissions.admin = ?', true)
     end
 
     def recent
@@ -47,11 +54,15 @@ class Repository < ActiveRecord::Base
     end
 
     def by_owner_name(owner_name)
-      where(:owner_name => owner_name)
+      where(owner_name: owner_name)
+    end
+
+    def by_member(login)
+      joins(:users).where(users: { login: login })
     end
 
     def by_slug(slug)
-      where(:owner_name => slug.split('/').first, :name => slug.split('/').last)
+      where(owner_name: slug.split('/').first, name: slug.split('/').last)
     end
 
     def search(query)
@@ -59,17 +70,34 @@ class Repository < ActiveRecord::Base
       where("(repositories.owner_name || chr(47) || repositories.name) ILIKE ?", "%#{query}%")
     end
 
+    def active
+      where(active: true)
+    end
+
     def find_by(params)
       if id = params[:repository_id] || params[:id]
-        self.find(id)
-      else
-        self.where(params.slice(:name, :owner_name)).first || raise(ActiveRecord::RecordNotFound)
+        find_by_id(id)
+      elsif params.key?(:slug)
+        by_slug(params[:slug]).first
+      elsif params.key?(:name) && params.key?(:owner_name)
+        where(params.slice(:name, :owner_name)).first
       end
     end
 
     def by_name
       Hash[*all.map { |repository| [repository.name, repository] }.flatten]
     end
+
+    def counts_by_owner_names(owner_names)
+      query = %(SELECT owner_name, count(*) FROM repositories WHERE owner_name IN (?) GROUP BY owner_name)
+      query = sanitize_sql([query, owner_names])
+      rows = connection.select_all(query, owner_names)
+      Hash[*rows.map { |row| [row['owner_name'], row['count'].to_i] }.flatten]
+    end
+  end
+
+  def admin
+    @admin ||= Travis.run_service(:find_admin, repository: self) # TODO check who's using this
   end
 
   def slug
@@ -80,39 +108,65 @@ class Repository < ActiveRecord::Base
     private? ? "git@github.com:#{slug}.git": "git://github.com/#{slug}.git"
   end
 
-  def service_hook
-    @service_hook ||= ::ServiceHook.new(
-      :owner_name => owner_name,
-      :name => name,
-      :active => active,
-      :repository => self
-    )
-  end
-
   def branches
-    builds.descending.paged({}).includes([:commit]).map{ |build| build.commit.branch }.uniq
-  end
-
-  def last_build_result(params = {})
-    if params.blank?
-      read_attribute(:last_build_result)
+    if Build.column_names.include?('branch')
+      self.class.connection.select_values %(
+        SELECT DISTINCT ON (branch) branch
+        FROM   builds
+        WHERE  builds.repository_id = #{id}
+        ORDER  BY branch DESC
+        LIMIT  25
+      )
     else
-      puts '[DEPRECATED] last_build_results with params is deprecated. please use last_build_result_on(params)'
-      last_build_result_on(params)
+      self.class.connection.select_values %(
+        SELECT DISTINCT ON (commits.branch) branch
+        FROM   builds
+        JOIN   commits ON builds.commit_id = commits.id
+        WHERE  builds.repository_id = #{id}
+        ORDER  BY commits.branch DESC
+        LIMIT  25
+      )
     end
   end
 
-  def last_build_result_on(params)
-    params = params.symbolize_keys.slice(*Build.matrix_keys_for(params))
-    params.empty? ? last_build_result : builds.last_result_on(params)
+  def last_completed_build(branch = nil)
+    builds.pushes.last_build_on(state: [:passed, :failed, :errored], branch: branch)
+  end
+
+  def build_status(branch)
+    builds.pushes.last_state_on(state: [:passed, :failed, :errored], branch: branch)
   end
 
   def last_finished_builds_by_branches
-    n = branches.map { |branch| builds.last_finished_on_branch(branch) }.compact
-    n.sort { |a, b| b.finished_at <=> a.finished_at }
+    builds.where(id: last_finished_builds_by_branches_ids).order(:finished_at)
   end
 
-  def rails_fork?
-    slug != 'rails/rails' && slug =~ %r(/rails$)
+  def last_finished_builds_by_branches_ids
+    if Build.column_names.include?('branch')
+      self.class.connection.select_values %(
+        SELECT DISTINCT ON (branch) builds.id
+        FROM   builds
+        WHERE  builds.repository_id = #{id}
+        ORDER  BY branch, finished_at DESC
+        LIMIT  25
+      )
+    else
+      self.class.connection.select_values %(
+        SELECT DISTINCT ON (commits.branch) builds.id
+        FROM   builds
+        JOIN   commits ON builds.commit_id = commits.id
+        WHERE  builds.repository_id = #{id}
+        ORDER  BY commits.branch, finished_at DESC
+        LIMIT  25
+      )
+    end
+  end
+
+  def regenerate_key!
+    ActiveRecord::Base.transaction do
+      key.destroy
+      build_key
+      save!
+    end
   end
 end

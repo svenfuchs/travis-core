@@ -2,47 +2,99 @@ require 'active_record'
 require 'gh'
 
 class User < ActiveRecord::Base
+  autoload :Oauth, 'travis/model/user/oauth'
+
   has_many :tokens
   has_many :memberships
   has_many :organizations, :through => :memberships
+  has_many :permissions
+  has_many :repositories, :through => :permissions
+  has_many :emails
 
-  attr_accessible :name, :login, :email, :github_id, :github_oauth_token, :gravatar_id
+  attr_accessible :name, :login, :email, :github_id, :github_oauth_token, :gravatar_id, :locale
 
   before_create :set_as_recent
   after_create :create_a_token
+  after_commit :sync, on: :create
+
+  serialize :github_scopes
+  before_save :track_github_scopes
+
+  serialize :github_oauth_token, Travis::Model::EncryptedColumn.new
 
   class << self
-    def create_from_github(name)
-      # TODO ask @rkh about this
-      data = GH["users/#{name}"] || raise(Travis::GithubApiError)
-      create!(:name => data['name'], :login => data['login'], :email => data['email'], :github_id => data['id'], :gravatar_id => data['gravatar_id'])
+    def with_permissions(permissions)
+      where(:permissions => permissions).includes(:permissions)
+    end
+
+    def authenticate_by(options)
+      options = options.symbolize_keys
+
+      if user = User.find_by_login(options[:login])
+        user if user.tokens.any? { |t| t.token == options[:token] }
+      end
     end
 
     def find_or_create_for_oauth(payload)
-      data = user_data_from_oauth(payload)
-      user = User.find_by_github_id(data['github_id'])
-      user ? user.update_attributes(data) : user = create!(data)
-      user
+      Oauth.find_or_create_by(payload)
     end
 
-    def user_data_from_oauth(payload) # TODO move this to a OauthPayload
-      {
-        'name'               => payload['info']['name'],
-        'email'              => payload['info']['email'],
-        'login'              => payload['info']['nickname'],
-        'github_id'          => payload['uid'].to_i,
-        'github_oauth_token' => payload['credentials']['token'],
-        'gravatar_id'        => payload['extra']['raw_info']['gravatar_id']
-      }
+    def with_github_token
+      where('github_oauth_token IS NOT NULL')
     end
+  end
 
-    def authenticate_by_token(login, token)
-      includes(:tokens).where(:login => login, 'tokens.token' => token).first
+  def to_json
+    keys = %w/id login email name locale github_id gravatar_id is_syncing synced_at updated_at created_at/
+    { 'user' => attributes.slice(*keys) }.to_json
+  end
+
+  def permission?(roles, options = {})
+    roles, options = nil, roles if roles.is_a?(Hash)
+    scope = permissions.where(options)
+    scope = scope.by_roles(roles) if roles
+    scope.any?
+  end
+
+  def first_sync?
+    synced_at.nil?
+  end
+
+  def sync
+    Travis.run_service(:sync_user, self) # TODO remove once apps use the service
+  end
+
+  def syncing?
+    is_syncing?
+  end
+
+  def service_hook(options = {})
+    service_hooks(options).first
+  end
+
+  def service_hooks(options = {})
+    hooks = repositories
+    unless options[:all]
+      hooks = hooks.administratable
     end
+    hooks = hooks.includes(:permissions).
+              select('repositories.*, permissions.admin as admin, permissions.push as push').
+              order('owner_name, name')
+    # TODO remove owner_name/name once we're on api everywhere
+    if options.key?(:id)
+      hooks = hooks.where(options.slice(:id))
+    elsif options.key?(:owner_name) || options.key?(:name)
+      hooks = hooks.where(options.slice(:id, :owner_name, :name))
+    end
+    hooks
   end
 
   def organization_ids
     @organization_ids ||= memberships.map(&:organization_id)
+  end
+
+  def repository_ids
+    @repository_ids ||= permissions.map(&:repository_id)
   end
 
   def recently_signed_up?
@@ -56,26 +108,21 @@ class User < ActiveRecord::Base
     gravatar_id.presence || (email? && Digest::MD5.hexdigest(email)) || '0' * 32
   end
 
-  def github_service_hooks
-    Travis::Github.repositories_for(self).map do |data|
-      repos = repositories_for(data['owner']['login'])
-      ServiceHook.new(
-        :uid => [data['owner']['login'], data['name']].join(':'),
-        :owner_name => data['owner']['login'],
-        :name => data['name'],
-        :url => data['_links']['html']['href'],
-        :active => repos[data['name']].try(:active),
-        :description => data['description']
-      )
-    end
+  def github_scopes
+    return [] unless github_oauth_token
+    read_attribute(:github_scopes) || []
   end
 
-  def authenticated_on_github(&block)
-    fail "we don't have a github token for #{inspect}" if github_oauth_token.blank?
-    GH.with(:token => github_oauth_token, &block)
+  def correct_scopes?
+    missing = Oauth.wanted_scopes - github_scopes
+    missing.empty?
   end
 
   protected
+
+    def track_github_scopes
+      self.github_scopes = Travis::Github.scopes_for(self) if github_oauth_token_changed? or github_scopes.blank?
+    end
 
     def set_as_recent
       @recently_signed_up = true
@@ -83,10 +130,5 @@ class User < ActiveRecord::Base
 
     def create_a_token
       self.tokens.create!
-    end
-
-    def repositories_for(login)
-      @repos ||= {}
-      @repos[login] ||= Repository.where(:owner_name => login).by_name
     end
 end

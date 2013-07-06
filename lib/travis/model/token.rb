@@ -10,9 +10,11 @@ class Token < ActiveRecord::Base
 
   validate :token, :presence => true
 
-  before_validation :generate_token
+  before_validation :generate_token, on: :create
 
   attr_accessible # nothing is changable
+
+  serialize :token, Travis::Model::EncryptedColumn.new
 
   protected
 

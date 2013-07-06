@@ -16,17 +16,17 @@ Gem::Specification.new do |s|
   s.require_path = 'lib'
   s.rubyforge_project = '[none]'
 
-  s.add_dependency 'rake',              '~> 0.9.2.2'
+  s.add_dependency 'rake'
   s.add_dependency 'thor',              '~> 0.14.6'
-  s.add_dependency 'activerecord',      '~> 3.2.3'
-  s.add_dependency 'actionmailer',      '~> 3.2.3'
-  s.add_dependency 'railties',          '~> 3.2.3'
-  s.add_dependency 'postmark-rails',    '~> 0.4.1'
+  s.add_dependency 'activerecord',      '~> 3.2.12'
+  s.add_dependency 'actionmailer',      '~> 3.2.12'
+  s.add_dependency 'railties',          '~> 3.2.12'
   s.add_dependency 'rollout',           '~> 1.1.0'
+  s.add_dependency 'coder',             '~> 0.4.0'
 
   # db
   s.add_dependency 'data_migrations',   '~> 0.0.1'
-  s.add_dependency 'redis',             '~> 2.2.2'
+  s.add_dependency 'redis',             '~> 3.0'
 
 
   # structures
@@ -34,9 +34,10 @@ Gem::Specification.new do |s|
   s.add_dependency 'metriks',           '~> 0.9.7'
 
   # app
-  s.add_dependency 'simple_states',     '~> 0.1.1'
+  s.add_dependency 'simple_states',     '~> 1.0.0'
 
   # apis
-  s.add_dependency 'pusher',            '~> 0.9.2'
+  s.add_dependency 'pusher',            '~> 0.11.0'
   s.add_dependency 'gh'
+  s.add_dependency 'multi_json'
 end

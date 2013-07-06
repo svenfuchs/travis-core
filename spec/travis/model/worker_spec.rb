@@ -1,20 +1,64 @@
 require 'spec_helper'
-require 'support/active_record'
 
 describe Worker do
-  include Support::ActiveRecord
+  include Support::Redis
 
-  let(:worker)    { Factory(:worker, :payload => QUEUE_PAYLOADS['job:test:1']) }
+  let(:payload)   { { job: { id: 1 }, repository: { id: 1, slug: 'foo/bar' } } }
+  let(:full_name) { 'worker-1.travis-ci.org:ruby-1' }
+  let(:state)     { 'started' }
+  let(:worker)    { create_worker }
 
-  describe 'full_name' do
-    it 'returns a name consisting of host and name' do
-      worker.full_name.should == 'ruby-1.worker.travis-ci.org:ruby-1'
+  def create_worker(attrs = {})
+    Worker::Repository.create({ full_name: full_name, state: state, payload: payload }.merge(attrs))
+  end
+
+  describe 'attributes' do
+    it 'full_name' do
+      worker.full_name.should == full_name
+    end
+
+    it 'state' do
+      worker.state.should == state
+    end
+
+    it 'payload' do
+      worker.payload.should == payload
+    end
+
+    it 'host' do
+      worker.host.should == 'worker-1.travis-ci.org'
+    end
+
+    it 'name' do
+      worker.name.should == 'ruby-1'
     end
   end
 
-  describe 'serialization' do
-    it 'serializes the payload' do
-      worker.reload.payload.should == QUEUE_PAYLOADS['job:test:1']
+  describe 'queue' do
+    it 'returns the queue if given' do
+      Worker.new(nil, queue: 'builds.nodejs').queue.should == 'builds.nodejs'
+    end
+
+    it 'guesses the queue if not given' do
+      Worker.new(nil, full_name: 'something.with.ruby').queue.should == 'builds.linux'
+    end
+  end
+
+  describe 'guess_queue' do
+    it 'guesses the queue name "builds.linux" (ruby)' do
+      Worker.new(nil, full_name: 'something.with.ruby').guess_queue.should == 'builds.linux'
+    end
+
+    it 'guesses the queue name "builds.linux" (staging)' do
+      Worker.new(nil, full_name: 'something.on.staging').guess_queue.should == 'builds.linux'
+    end
+
+    it 'guesses the queue name "builds.linux" (linux)' do
+      Worker.new(nil, full_name: 'bluebox-linux-1.worker').guess_queue.should == 'builds.linux'
+    end
+
+    it 'guesses the queue name "builds.mac_osx" (mac)' do
+      Worker.new(nil, full_name: 'saucelabs-mac.worker').guess_queue.should == 'builds.mac_osx'
     end
   end
 end

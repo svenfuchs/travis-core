@@ -2,49 +2,66 @@ require 'active_support/concern'
 require 'simple_states'
 
 class Request
-
-  # A Request goes through the following lifecycle:
-  #
-  #  * A newly created instance is in the `created` state.
-  #  * Its `start` and `configure` events are triggered by the request's
-  #    configure job. The `configure` event then triggers the `finish` event
-  #    TODO: why is that? why not rename `configure` to `finish`?
-  #
-  # Once configured a Request will be approved if the given branch is included
-  # and not excluded and the repository is not a Rails fork.
-  #
-  # When the Request is approved then it creates a Build.
-  # TODO: why does creating the Build not happen on `finish`?
   module States
     extend ActiveSupport::Concern
+    include Travis::Event
 
     included do
-      include SimpleStates, Branches
+      include SimpleStates
 
       states :created, :started, :finished
-      event :start,     :to => :started
+      event :start,     :to => :started, :after => :configure
       event :configure, :to => :configured, :after => :finish
       event :finish,    :to => :finished
+      event :all, :after => :notify
+    end
 
-      # save the configuration and create a build if approved
-      def configure(data)
-        update_attributes!(extract_attributes(data))
-        create_build! if approved?
+    def configure
+      if !accepted?
+        Travis.logger.warn("[request:configure] Request not accepted: event_type=#{event_type.inspect} commit=#{commit.try(:commit).inspect} message=#{approval.message.inspect}")
+      elsif config.present?
+        Travis.logger.warn("[request:configure] Request not configured: config not blank, config=#{config.inspect} commit=#{commit.try(:commit).inspect}")
+      else
+        self.config = fetch_config
+
+        if branch_accepted?
+          Travis.logger.info("[request:configure] Request successfully configured commit=#{commit.commit.inspect}")
+        else
+          self.config = nil
+          Travis.logger.warn("[request:configure] Request not accepted: event_type=#{event_type.inspect} commit=#{commit.try(:commit).inspect} message=#{approval.message.inspect}")
+        end
+      end
+      save!
+    end
+
+    def finish
+      if config.blank?
+        Travis.logger.warn("[request:finish] Request not creating a build: config is blank, config=#{config.inspect} commit=#{commit.try(:commit).inspect}")
+      elsif !approved?
+        Travis.logger.warn("[request:finish] Request not creating a build: not approved commit=#{commit.try(:commit).inspect} message=#{approval.message.inspect}")
+      else
+        add_build
+        Travis.logger.info("[request:finish] Request created a build. commit=#{commit.try(:commit).inspect}")
+      end
+      self.result = approval.result
+      self.message = approval.message
+      Travis.logger.info("[request:finish] Request finished. result=#{result.inspect} message=#{message.inspect} commit=#{commit.try(:commit).inspect}")
+    end
+
+    protected
+
+      delegate :accepted?, :approved?, :branch_accepted?, :to => :approval
+
+      def approval
+        @approval ||= Approval.new(self)
       end
 
-      protected
+      def fetch_config
+        Travis.run_service(:github_fetch_config, request: self) # TODO move to a service, have it pass the config to configure
+      end
 
-        def approved?
-          branch_included?(commit.branch) && !branch_excluded?(commit.branch)
-        end
-
-        def extract_attributes(attributes)
-          attributes.symbolize_keys.slice(*attribute_names.map(&:to_sym))
-        end
-
-        def create_build!
-          builds.create!(:repository => repository, :commit => commit, :config => config, :owner => owner)
-        end
-    end
+      def add_build
+        builds.create!(:repository => repository, :commit => commit, :config => config, :owner => owner)
+      end
   end
 end

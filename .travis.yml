@@ -1,14 +1,22 @@
 language: ruby
+services:
+  - redis
 rvm:
-  - 1.9.2
-  - jruby-18mode
   - jruby-19mode
-  - jruby-head
+jdk:
+  - oraclejdk7
+  - openjdk6
 matrix:
-  allow_failures:
-    - rvm: jruby-19mode
-    - rvm: jruby-head
+  include:
+    - rvm: 1.9.3
+      jdk:
+    - rvm: 2.0.0
+      jdk:
 before_script:
+  - sudo service mysql stop
+  - redis-cli config set save ""
   - 'RAILS_ENV=test rake db:create db:schema:load --trace'
+script:
+  - './build.sh'
 notifications:
   irc: "irc.freenode.org#travis"

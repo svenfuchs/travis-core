@@ -1,5 +1,5 @@
 require 'active_record'
-require 'metriks'
+require 'simple_states'
 
 # Models an incoming request. The only supported source for requests currently is Github.
 #
@@ -9,43 +9,62 @@ require 'metriks'
 class Request < ActiveRecord::Base
   autoload :Approval, 'travis/model/request/approval'
   autoload :Branches, 'travis/model/request/branches'
-  autoload :Factory,  'travis/model/request/factory'
   autoload :States,   'travis/model/request/states'
 
-  include Approval, States
+  include States, SimpleStates
+
+  serialize :token, Travis::Model::EncryptedColumn.new
 
   class << self
-    def create_from(type, data, token)
-      Metriks.meter('github.requests.received').mark
-      Factory.new(type, data, token).request
-    end
-
     def last_by_head_commit(head_commit)
-      where(:head_commit => head_commit).order(:id).last
+      where(head_commit: head_commit).order(:id).last
     end
   end
 
-  has_one    :job, :as => :source, :class_name => 'Job::Configure'
   belongs_to :commit
   belongs_to :repository
-  belongs_to :owner, :polymorphic => true
+  belongs_to :owner, polymorphic: true
   has_many   :builds
+  has_many   :events, as: :source
 
-  validates :repository_id, :presence => true
+  validates :repository_id, presence: true
 
   serialize :config
+  serialize :payload
 
-  before_create do
-    if accept?
-      Metriks.meter('github.requests.accepted').mark
-      build_job(:repository => repository, :commit => commit, :owner => owner) # create the initial configure job
-    else
-      Metriks.meter('github.requests.rejected').mark
-      self.state = :finished
-    end
+  def event_type
+    read_attribute(:event_type) || 'push'
   end
 
   def pull_request?
     event_type == 'pull_request'
+  end
+
+  def pull_request_title
+    if pull_request? && payload
+      payload['pull_request'] && payload['pull_request']['title']
+    end
+  end
+
+  def pull_request_number
+    if pull_request? && payload
+      payload['pull_request'] && payload['pull_request']['number']
+    end
+  end
+
+  def config_url
+    "https://api.github.com/repos/#{repository.slug}/contents/.travis.yml?ref=#{commit.commit}"
+  end
+
+  def same_repo_pull_request?
+    begin
+      payload = Hashr.new(self.payload)
+      head_repo = payload.try(:pull_request).try(:head).try(:repo).try(:full_name)
+      base_repo = payload.try(:pull_request).try(:base).try(:repo).try(:full_name)
+      head_repo && base_repo && head_repo == base_repo
+    rescue => e
+      puts "[request:#{id}] Couldn't determine whether pull request is from the same repository: #{e.message}"
+      false
+    end
   end
 end

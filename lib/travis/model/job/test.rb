@@ -1,3 +1,6 @@
+require 'active_support/core_ext/hash/slice'
+require 'simple_states'
+
 class Job
 
   # Executes a test job (i.e. runs a test suite) remotely and keeps tabs about
@@ -5,26 +8,76 @@ class Job
   #
   # Job::Test belongs to a Build as part of the build matrix and will be
   # created with the Build.
-  #
-  # As test logs are streamed from the worker to both the application (db) and
-  # browsers this class also implements a public `append_log!` method that both
-  # appends log updates efficiently and notifies the event handlers (see
-  # `Job::Test::States.append_log!`)
   class Test < Job
-    autoload :States, 'travis/model/job/test/states'
+    include Sponsors, Tagging
 
-    include Test::States, Sponsors, Tagging
+    FINISHED_STATES = [:passed, :failed, :errored, :canceled]
 
-    class << self
-      def append_log!(id, chars)
-        job = find(id)
-        job.append_log!(chars) unless job.finished?
+    include SimpleStates, Travis::Event
+
+    states :created, :queued, :started, :passed, :failed, :errored, :canceled
+
+    event :start,   to: :started
+    event :finish,  to: :finished, after: :add_tags
+    event :reset,   to: :created, unless: :created?
+    event :all, after: [:propagate, :notify]
+
+    def enqueue # TODO rename to queue and make it an event, simple_states should support that now
+      update_attributes!(state: :queued, queued_at: Time.now.utc)
+      notify(:queue)
+    end
+
+    def start(data = {})
+      log.update_attributes!(content: '') # TODO this should be in a restart method, right?
+      data = data.symbolize_keys.slice(:started_at, :worker)
+      data.each { |key, value| send(:"#{key}=", value) }
+    end
+
+    def finish(data = {})
+      data = data.symbolize_keys.slice(:state, :finished_at)
+      data.each { |key, value| send(:"#{key}=", value) }
+    end
+
+    def reset(*)
+      self.state = :created
+      attrs = %w(started_at queued_at finished_at worker)
+      attrs.each { |attr| write_attribute(attr, nil) }
+      if log
+        log.clear!
+      else
+        build_log
       end
     end
 
-    def append_log!(chars)
-      Artifact::Log.append(id, chars)
+    def cancelable?
+      created?
+    end
+
+    def resetable?
+      finished?
+    end
+
+    def finished?
+      FINISHED_STATES.include?(state.to_sym)
+    end
+
+    def passed?
+      state == "passed"
+    end
+
+    def failed?
+      state == "failed"
+    end
+
+    def unknown?
+      state == nil
+    end
+
+    def notify(event, *args)
+      event = :create if event == :reset
       super
     end
+
+    delegate :id, :content, :to => :log, :prefix => true, :allow_nil => true
   end
 end

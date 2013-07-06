@@ -1,54 +1,25 @@
 require 'spec_helper'
-require 'support/active_record'
 
 describe Commit do
   include Support::ActiveRecord
 
   let(:commit) { Commit.new(:commit => '12345678') }
 
-  describe 'config_url' do
-    it 'returns the raw url to the .travis.yml file on github' do
-      commit.repository = Repository.new(:owner_name => 'travis-ci', :name => 'travis-ci')
-      commit.config_url.should == 'https://raw.github.com/travis-ci/travis-ci/12345678/.travis.yml'
-    end
-  end
+  describe 'pull_request_number' do
+    context 'when commit is from pull request' do
+      before { commit.ref = 'refs/pull/180/merge' }
 
-  describe 'skipped?' do
-    it 'returns true when the commit message contains [ci skip]' do
-      commit.message = 'lets party like its 1999 [ci skip]'
-      commit.skipped?.should be_true
+      it 'returns pull request\'s number' do
+        commit.pull_request_number.should == 180
+      end
     end
 
-    it 'returns true when the commit message contains [CI skip]' do
-      commit.message = 'lets party like its 1999 [CI skip]'
-      commit.skipped?.should be_true
-    end
+    context 'when commit is not from pull request' do
+      before { commit.ref = 'refs/branch/master' }
 
-    it 'returns true when the commit message contains [ci:skip]' do
-      commit.message = 'lets party like its 1999 [ci:skip]'
-      commit.skipped?.should be_true
-    end
-
-    it 'returns false when the commit message contains [ci unknown-command]' do
-      commit.message = 'lets party like its 1999 [ci unknown-command]'
-      commit.skipped?.should be_false
-    end
-  end
-
-  describe 'github_pages?' do
-    it 'returns true for a branch named gh-pages' do
-      commit.ref = 'refs/heads/gh-pages'
-      commit.github_pages?.should be_true
-    end
-
-    it 'returns true for a branch named gh_pages' do
-      commit.ref = 'refs/heads/gh_pages'
-      commit.github_pages?.should be_true
-    end
-
-    it 'returns false for a branch named master' do
-      commit.ref = 'refs/heads/master'
-      commit.github_pages?.should be_false
+      it 'returns nil' do
+        commit.pull_request_number.should be_nil
+      end
     end
   end
 
@@ -71,6 +42,32 @@ describe Commit do
     it 'is true for a ref named ref/pull/180/merge' do
       commit.ref = 'refs/pull/180/merge'
       commit.pull_request?.should be_true
+    end
+  end
+
+  describe '#range' do
+    context 'with compare_url present' do
+      before { commit.compare_url = 'https://github.com/rails/rails/compare/ffaab2c4ffee...60790e852a4f' }
+
+      it 'returns range' do
+        commit.range.should == 'ffaab2c4ffee...60790e852a4f'
+      end
+    end
+
+    context 'with invalid compare_url' do
+      before { commit.compare_url = 'https://github.com/rails/rails/compare/ffaab2c4ffee.....60790e852a4f' }
+
+      it 'returns nil' do
+        commit.range.should be_nil
+      end
+    end
+
+    context 'without compare_url' do
+      before { commit.compare_url = nil }
+
+      it 'returns nil' do
+        commit.range.should be_nil
+      end
     end
   end
 end

@@ -3,3 +3,7 @@ Gemfile.lock
 config/travis.yml
 play/*
 log/*
+.bundle
+tmp
+.rbenv*
+notes

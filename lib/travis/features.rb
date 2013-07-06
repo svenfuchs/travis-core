@@ -20,20 +20,21 @@ module Travis
   # to the rollout library, where features can be enabled for users,
   # groups and based on percentages.
   module Features
-    mattr_accessor :redis, :rollout
-
     class << self
       methods = (Rollout.public_instance_methods(false) - [:active?, "active?"]) << {:to => :rollout}
       delegate(*methods)
     end
 
     def start
-      self.redis ||= ::Redis.connect(:url => Travis.config.redis.url)
-      self.rollout ||= ::Rollout.new(redis)
+      # TODO deprecate
     end
 
-    def stop
-      self.redis = self.rollout = nil
+    def redis
+      Travis.redis
+    end
+
+    def rollout
+      @rollout ||= ::Rollout.new(redis)
     end
 
     def active?(feature, repository)
@@ -70,6 +71,10 @@ module Travis
       redis.get(disabled_key(feature)) != "1"
     end
 
+    def feature_deactivated?(feature)
+      redis.get(disabled_key(feature)) == '0'
+    end
+
     def deactivate_all(feature)
       redis.set(disabled_key(feature), 0)
     end
@@ -86,12 +91,29 @@ module Travis
       redis.set(enabled_for_all_key(feature), 0)
     end
 
+    def activate_owner(feature, owner)
+      redis.sadd(owner_key(feature, owner), owner.id)
+    end
+
+    def deactivate_owner(feature, owner)
+      redis.srem(owner_key(feature, owner), owner.id)
+    end
+
+    def owner_active?(feature, owner)
+      redis.sismember(owner_key(feature, owner), owner.id)
+    end
+
     extend self
 
     private
 
     def key(name)
       "feature:#{name}"
+    end
+
+    def owner_key(feature, owner)
+      suffix = owner.class.table_name
+      "#{key(feature)}:#{suffix}"
     end
 
     def repository_key(feature)

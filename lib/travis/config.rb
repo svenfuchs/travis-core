@@ -1,3 +1,4 @@
+require 'faraday'
 require 'hashr'
 require 'yaml'
 
@@ -62,14 +63,23 @@ module Travis
 
       def normalize(data)
         data.deep_symbolize_keys!
-        data.merge!(:database => database_from_env) if database_env_url
+        if database_from_env
+          data[:database] ||= {}
+          data[:database].merge! database_from_env do |key, old_value, new_value|
+            if old_value == new_value
+              old_value
+            else
+              fail "Conflict in database config between ENV and travis.yml: #{key} is #{old_value.inspect} vs #{new_value}"
+            end
+          end
+        end
         data
       end
     end
 
     HOSTS = {
-      :production  => 'travis-assets.herokuapp.com',
-      :staging     => 'travis-assets-staging.herokuapp.com',
+      :production  => 'travis-ci.org',
+      :staging     => 'staging.travis-ci.org',
       :development => 'localhost:3000'
     }
 
@@ -77,23 +87,34 @@ module Travis
 
     define  :host          => 'travis-ci.org',
             :shorten_host  => 'trvs.io',
+            :tokens        => { :internal => 'token' },
             :assets        => { :host => HOSTS[Travis.env.to_sym], :version => defined?(Travis::Assets) ? Travis::Assets.version : 'asset-id', :interval => 15 },
             :amqp          => { :username => 'guest', :password => 'guest', :host => 'localhost', :prefetch => 1 },
             :database      => { :adapter => 'postgresql', :database => "travis_#{Travis.env}", :encoding => 'unicode', :min_messages => 'warning' },
-            :airbrake      => { :key => 'airbrake-api_key' },
+            :s3            => { :access_key_id => '', :secret_access_key => '' },
             :pusher        => { :app_id => 'app-id', :key => 'key', :secret => 'secret' },
-            :smtp          => { :user_name => 'postmark-api_key' },
+            :sidekiq       => { :namespace => 'sidekiq', :pool_size => 1 },
+            :smtp          => {},
             :github        => { :token => 'travisbot-token' },
             :async         => {},
-            :notifications => [],
+            :notifications => [], # TODO rename to event.handlers
             :queues        => [],
-            :workers       => { :prune => { :after => 15, :interval => 5 } },
+            :default_queue => 'builds.linux',
+            :workers       => { :ttl => 60, :prune => { :interval => 5 } },
             :jobs          => { :retry => { :after => 60 * 60 * 2, :max_attempts => 1, :interval => 60 * 5 } },
+            :queue         => { :limit => { :default => 5, :by_owner => {} }, :interval => 3 },
+            :logs          => { :shards => 1, :intervals => { :vacuum => 10, :regular => 180, :force => 3 * 60 * 60 } },
             :email         => {},
+            :roles         => {},
             :archive       => {},
             :ssl           => {},
             :sponsors      => { :platinum => [], :gold => [], :workers => {} },
-            :redis         => { :url => ENV['REDISTOGO_URL'] || 'redis://localhost:6379' }
+            :redis         => { :url => 'redis://localhost:6379' },
+            :repository_filter => { :include => [/^rails\/rails/], :exclude => [/\/rails$/] },
+            :encryption    => (Travis.env == 'development' ? { key: 'secret'*10 } : {}),
+            :sync          => { :organizations => { :repositories_limit => 1000 } },
+            :states_cache  => { :memcached_servers => 'localhost:11211' },
+            :sentry        => { }
 
     default :_access => [:key]
 
@@ -108,7 +129,7 @@ module Travis
     end
 
     def http_host
-      "http://#{host}"
+      "https://#{host}"
     end
 
     def http_shorten_host
@@ -126,12 +147,12 @@ module Travis
         version = fetch
         if version && assets.version != version
           self.assets.version = version
-          puts "[asset-version] Updated asset version from http://#{Travis.config.assets.host}/current to #{assets.version}"
+          puts "[asset-version] Updated asset version from https://#{Travis.config.assets.host}/current to #{assets.version}"
         end
       end
 
       def fetch
-        response = http_client.get("http://#{Travis.config.assets.host}/current")
+        response = http_client.get("https://#{Travis.config.assets.host}/version")
         if response.success?
           response.body
         else

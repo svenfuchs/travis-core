@@ -64,6 +64,109 @@ GITHUB_PAYLOADS = {
     "compare": "https://github.com/svenfuchs/gem-release/compare/af674bd...9854592"
   }),
 
+  "skip-last" => %({
+    "repository": {
+      "url": "http://github.com/svenfuchs/gem-release",
+      "name": "gem-release",
+      "description": "Release your gems with ease",
+      "owner": {
+        "email": "svenfuchs@artweb-design.de",
+        "name": "svenfuchs"
+      }
+    },
+    "commits": [{
+      "id":        "60aaa2faaa5fdbd87719a10e308d396b828e5a01",
+      "message":   "Bump to 0.0.14",
+      "timestamp": "2010-10-12T08:47:06Z",
+      "committer": {
+        "name":  "Sven Fuchs",
+        "email": "svenfuchs@artweb-design.de"
+      },
+      "author": {
+        "name":  "Sven Fuchs",
+        "email": "svenfuchs@artweb-design.de"
+      }
+    },{
+      "id":        "586374eac43853e5542a2e2faafd48047127e4be",
+      "message":   "Update the readme",
+      "timestamp": "2010-10-14T04:00:37Z",
+      "committer": {
+        "name":  "Sven Fuchs",
+        "email": "svenfuchs@artweb-design.de"
+      },
+      "author": {
+        "name":  "Christopher Floess",
+        "email": "chris@flooose.de"
+      }
+    },{
+      "id":        "46ebe012ef3c0be5542a2e2faafd48047127e4be",
+      "message":   "Bump to 0.0.15\\n\\n[ci skip]",
+      "timestamp": "2010-10-27T04:32:37Z",
+      "committer": {
+        "name":  "Sven Fuchs",
+        "email": "svenfuchs@artweb-design.de"
+      },
+      "author": {
+        "name":  "Christopher Floess",
+        "email": "chris@flooose.de"
+      }
+    }],
+    "ref": "refs/heads/master",
+    "compare": "https://github.com/svenfuchs/gem-release/compare/af674bd...9854592"
+  }),
+
+  "skip-all" => %({
+    "repository": {
+      "url": "http://github.com/svenfuchs/gem-release",
+      "name": "gem-release",
+      "description": "Release your gems with ease",
+      "owner": {
+        "email": "svenfuchs@artweb-design.de",
+        "name": "svenfuchs"
+      }
+    },
+    "commits": [{
+      "id":        "60aaa2faaa5fdbd87719a10e308d396b828e5a01",
+      "message":   "Bump to 0.0.14\\n\\n[ci skip]",
+      "timestamp": "2010-10-12T08:47:06Z",
+      "committer": {
+        "name":  "Sven Fuchs",
+        "email": "svenfuchs@artweb-design.de"
+      },
+      "author": {
+        "name":  "Sven Fuchs",
+        "email": "svenfuchs@artweb-design.de"
+      }
+    },{
+      "id":        "586374eac43853e5542a2e2faafd48047127e4be",
+      "message":   "Update the readme\\n\\n[ci skip]",
+      "timestamp": "2010-10-14T04:00:37Z",
+      "committer": {
+        "name":  "Sven Fuchs",
+        "email": "svenfuchs@artweb-design.de"
+      },
+      "author": {
+        "name":  "Christopher Floess",
+        "email": "chris@flooose.de"
+      }
+    },{
+      "id":        "46ebe012ef3c0be5542a2e2faafd48047127e4be",
+      "message":   "Bump to 0.0.15\\n\\n[ci skip]",
+      "timestamp": "2010-10-27T04:32:37Z",
+      "committer": {
+        "name":  "Sven Fuchs",
+        "email": "svenfuchs@artweb-design.de"
+      },
+      "author": {
+        "name":  "Christopher Floess",
+        "email": "chris@flooose.de"
+      }
+    }],
+    "ref": "refs/heads/master",
+    "compare": "https://github.com/svenfuchs/gem-release/compare/af674bd...9854592"
+  }),
+
+
   "travis-core" => %({
     "repository": {
       "url": "http://github.com/travis-ci/travis-core",
@@ -330,6 +433,7 @@ GITHUB_PAYLOADS = {
       "html_url": "https://github.com/travis-repos/test-project-1/pull/1",
       "id": 826379,
       "mergeable": true,
+      "mergeable_state": "clean",
       "additions": 1
     },
     "repository": {
@@ -354,6 +458,66 @@ GITHUB_PAYLOADS = {
       "login": "rkh",
       "url": "https:\/\/api.github.com\/users\/rkh"
     }
+  }),
+
+  'hook_inactive' => %({
+    "last_response": {
+      "status": "ok",
+      "message": "",
+      "code": 200
+    },
+    "config": {
+      "domain": "staging.travis-ci.org",
+      "user": "svenfuchs",
+      "token": "token"
+    },
+    "created_at": "2011-09-18T10:49:06Z",
+    "events": [
+      "push",
+      "pull_request",
+      "issue_comment",
+      "public",
+      "member"
+    ],
+    "active": false,
+    "updated_at": "2012-08-09T09:32:42Z",
+    "name": "travis",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/svenfuchs/minimal/hooks/77103"
+      }
+    },
+    "id": 77103
+  }),
+
+  'hook_active' => %({
+    "last_response": {
+      "status": "ok",
+      "message": "",
+      "code": 200
+    },
+    "config": {
+      "domain": "staging.travis-ci.org",
+      "user": "svenfuchs",
+      "token": "token"
+    },
+    "created_at": "2011-09-18T10:49:06Z",
+    "events": [
+      "push",
+      "pull_request",
+      "issue_comment",
+      "public",
+      "member"
+    ],
+    "active": true,
+    "updated_at": "2012-08-09T09:32:42Z",
+    "name": "travis",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/svenfuchs/minimal/hooks/77103"
+      }
+    },
+    "id": 77103
   }),
 
   'rkh' => %({
@@ -404,14 +568,17 @@ GITHUB_OAUTH_DATA = {
 }
 
 WORKER_PAYLOADS = {
-  'job:configure:started'  => { 'id' => 1, 'state' => 'started',  'started_at'  => '2011-01-01 00:00:00 +0200' },
-  'job:configure:finished' => { 'id' => 1, 'state' => 'finished', 'finished_at' => '2011-01-01 00:01:00 +0200', 'config' => { 'rvm' => ['1.8.7', '1.9.2'] } },
-  'job:test:started'       => { 'id' => 1, 'state' => 'started',  'started_at'  => '2011-01-01 00:02:00 +0200', 'worker' => 'ruby3.worker.travis-ci.org:travis-ruby-4' },
-  'job:test:log'           => { 'id' => 1, 'log' => '... appended' },
-  'job:test:log:1'         => { 'id' => 1, 'log' => 'the '  },
-  'job:test:log:2'         => { 'id' => 1, 'log' => 'full ' },
-  'job:test:log:3'         => { 'id' => 1, 'log' => 'log'   },
-  'job:test:finished'      => { 'id' => 1, 'state' => 'finished', 'finished_at' => '2011-01-01 00:03:00 +0200', 'result' => 0, 'log' => 'the full log' }
+  'job:test:start'  => { 'id' => 1, 'state' => 'started',  'started_at'  => '2011-01-01 00:02:00 +0200', 'worker' => 'ruby3.worker.travis-ci.org:travis-ruby-4' },
+  'job:test:log'    => { 'id' => 1, 'log' => '... appended' },
+  'job:test:log:1'  => { 'id' => 1, 'log' => 'the '  },
+  'job:test:log:2'  => { 'id' => 1, 'log' => 'full ' },
+  'job:test:log:3'  => { 'id' => 1, 'log' => 'log'   },
+  'job:test:finish' => { 'id' => 1, 'state' => 'passed', 'finished_at' => '2011-01-01 00:03:00 +0200', 'log' => 'the full log' },
+  'job:test:reset'  => { 'id' => 1 }
+}
+
+WORKER_LEGACY_PAYLOADS = {
+  'job:test:finished' => { 'id' => 1, 'state' => 'finished', 'finished_at' => '2011-01-01 00:03:00 +0200', 'result' => 0, 'log' => 'the full log' }
 }
 
 QUEUE_PAYLOADS = {
@@ -423,11 +590,11 @@ QUEUE_PAYLOADS = {
   'job:test:1' => {
     :build      => { :id => 2, :number => '1.1', :commit => '9854592', :branch => 'master', :config => { :rvm => '1.8.7' } },
     :repository => { :id => 1, :slug => 'svenfuchs/gem-release' },
-    :queue      => 'builds.common'
+    :queue      => 'builds.linux'
   },
   'job:test:2' => {
     :build      => { :id => 3, :number => '1.2', :commit => '9854592', :branch => 'master', :config => { :rvm => '1.9.2' } },
     :repository => { :id => 1, :slug => 'svenfuchs/gem-release' },
-    :queue      => 'builds.common'
+    :queue      => 'builds.linux'
   }
 }
