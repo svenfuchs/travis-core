@@ -1,8 +1,6 @@
 require 'spec_helper'
-require 'travis/api'
-require 'travis/api/support/stubs'
 
-describe Travis::Api::Json::Http::Organizations do
+describe Travis::Api::V1::Http::Organizations do
   include Support::Stubs, Support::Formats
 
   let(:data) { Travis::Api::Json::Http::Organizations.new([organization]).data }
