@@ -1,9 +1,9 @@
 require 'spec_helper'
 
 describe Travis::Api::V1::Http::Organizations do
-  include Support::Stubs, Support::Formats
+  include Travis::Testing::Stubs
 
-  let(:data) { Travis::Api::Json::Http::Organizations.new([organization]).data }
+  let(:data) { Travis::Api::V1::Http::Organizations.new([organization]).data }
 
   it 'data' do
     data.first.should == {
