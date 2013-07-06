@@ -14,7 +14,7 @@ module Travis
 
         def handle
           Travis::Addons::GithubStatus::Task.run(:github_status, payload, token: token(potential_admin))
-        rescue Exception
+        rescue GH::Error
           Travis::Addons::GithubStatus::Task.run(:github_status, payload, token: token(validated_admin))
         end
 
