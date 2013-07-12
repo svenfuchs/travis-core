@@ -88,11 +88,11 @@ class Job < ActiveRecord::Base
   end
 
   def config=(config)
-    super(config ? config.deep_symbolize_keys : {})
+    super normalize_config(config)
   end
 
   def obfuscated_config
-    config.deep_dup.tap do |config|
+    normalize_config(config).deep_dup.tap do |config|
       config.delete(:addons)
       config.delete(:source_key)
       if config[:env]
@@ -107,7 +107,7 @@ class Job < ActiveRecord::Base
   end
 
   def decrypted_config
-    self.config.deep_dup.tap do |config|
+    normalize_config(self.config).deep_dup.tap do |config|
       config[:env] = process_env(config[:env]) { |env| decrypt_env(env) } if config[:env]
       config[:global_env] = process_env(config[:global_env]) { |env| decrypt_env(env) } if config[:global_env]
       if config[:addons]
@@ -118,6 +118,9 @@ class Job < ActiveRecord::Base
         end
       end
     end
+  rescue => e
+    logger.warn "[job id:#{id}] Config could not be decrypted due to #{e.message}"
+    {}
   end
 
   def matrix_config?(config)
@@ -137,6 +140,17 @@ class Job < ActiveRecord::Base
   end
 
   private
+
+    def normalize_config(config)
+      config = config ? config.deep_symbolize_keys : {}
+
+      if config[:deploy]
+        config[:addons] ||= {}
+        config[:addons][:deploy] = config.delete(:deploy)
+      end
+
+      config
+    end
 
     def process_env(env)
       env = [env] unless env.is_a?(Array)
