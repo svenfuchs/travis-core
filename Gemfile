@@ -20,9 +20,9 @@ end
 
 platform :jruby do
   gem 'jruby-openssl',    '~> 0.8.5'
-  gem 'hot_bunnies',      '~> 1.4.0'
-  gem 'activerecord-jdbcpostgresql-adapter'
-  gem 'activerecord-jdbc-adapter', github: 'jruby/activerecord-jdbc-adapter'
+  gem 'hot_bunnies',      '~> 1.5.0'
+  gem 'activerecord-jdbcpostgresql-adapter', github: 'jruby/activerecord-jdbc-adapter'
+  gem 'activerecord-jdbc-adapter',           github: 'jruby/activerecord-jdbc-adapter'
 end
 
 group :development, :test do
