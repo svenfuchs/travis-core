@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20130909203321) do
+ActiveRecord::Schema.define(:version => 20130910184823) do
 
   create_table "broadcasts", :force => true do |t|
     t.integer  "recipient_id"
@@ -47,6 +47,7 @@ ActiveRecord::Schema.define(:version => 20130909203321) do
   end
 
   add_index "builds", ["finished_at"], :name => "index_builds_on_finished_at"
+  add_index "builds", ["id", "repository_id", "event_type"], :name => "index_builds_on_id_repository_id_and_event_type_desc", :order => {"id"=>:desc}
   add_index "builds", ["repository_id", "event_type", "state", "branch"], :name => "index_builds_on_repository_id_and_event_type_and_state_and_bran"
   add_index "builds", ["repository_id", "event_type"], :name => "index_builds_on_repository_id_and_event_type"
   add_index "builds", ["repository_id", "state"], :name => "index_builds_on_repository_id_and_state"
