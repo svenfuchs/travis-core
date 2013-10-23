@@ -2,7 +2,7 @@ source 'https://rubygems.org'
 
 gemspec
 
-gem 'travis-support',     github: 'travis-ci/travis-support'
+gem 'travis-support',     github: 'travis-ci/travis-support', branch: 'sf-te'
 gem 'travis-sidekiqs',    github: 'travis-ci/travis-sidekiqs', require: nil
 gem 'gh',                 github: 'travis-ci/gh'
 gem 'newrelic_rpm',       '~> 3.4.2'
