@@ -41,13 +41,14 @@ module Travis
   require 'travis/api'
   require 'travis/config'
   require 'travis/commit_command'
-  require 'travis/features'
-  require 'travis/services'
   require 'travis/enqueue'
-  require 'travis/requests'
+  require 'travis/features'
   require 'travis/github'
+  require 'travis/logs'
   require 'travis/mailer'
   require 'travis/notification'
+  require 'travis/requests'
+  require 'travis/services'
 
   class UnknownRepository < StandardError; end
   class GithubApiError    < StandardError; end
