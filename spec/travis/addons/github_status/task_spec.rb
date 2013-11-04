@@ -60,6 +60,7 @@ describe Travis::Addons::GithubStatus::Task do
       }.to raise_error
       io.string.should include('[task]')
       io.string.should include('Could not update')
+      io.string.should include('error:')
     end
   end
 end
