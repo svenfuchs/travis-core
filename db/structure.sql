@@ -1161,10 +1161,10 @@ CREATE INDEX index_jobs_on_created_at ON jobs USING btree (created_at);
 
 
 --
--- Name: index_jobs_on_owner_id_and_owner_type_and_state; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: index_jobs_on_owner_id_and_owner_type; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE INDEX index_jobs_on_owner_id_and_owner_type_and_state ON jobs USING btree (owner_id, owner_type, state);
+CREATE INDEX index_jobs_on_owner_id_and_owner_type ON jobs USING btree (owner_id, owner_type);
 
 
 --
@@ -1182,10 +1182,10 @@ CREATE INDEX index_jobs_on_repository_id ON jobs USING btree (repository_id);
 
 
 --
--- Name: index_jobs_on_state_owner_type_owner_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: index_jobs_on_state; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE INDEX index_jobs_on_state_owner_type_owner_id ON jobs USING btree (state, owner_id, owner_type);
+CREATE INDEX index_jobs_on_state ON jobs USING btree (state);
 
 
 --
@@ -1591,6 +1591,8 @@ INSERT INTO schema_migrations (version) VALUES ('20130916101056');
 INSERT INTO schema_migrations (version) VALUES ('20130920135744');
 
 INSERT INTO schema_migrations (version) VALUES ('20131104101056');
+
+INSERT INTO schema_migrations (version) VALUES ('20131108140845');
 
 INSERT INTO schema_migrations (version) VALUES ('20131109101056');
 
