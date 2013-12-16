@@ -127,7 +127,6 @@ describe Travis::Config do
   describe 'reads custom config files' do
     before :each do
       Dir.stubs(:[]).returns ['config/travis.yml', 'config/travis/foo.yml', 'config/travis/bar.yml']
-      File.stubs(:file?).returns true
       YAML.stubs(:load_file).with('config/travis.yml').returns('test' => { 'travis' => 'travis', 'shared' => 'travis' })
       YAML.stubs(:load_file).with('config/travis/foo.yml').returns('test' => { 'foo' => 'foo' })
       YAML.stubs(:load_file).with('config/travis/bar.yml').returns('test' => { 'bar' => 'bar', 'shared' => 'bar' })
@@ -144,6 +143,26 @@ describe Travis::Config do
 
     it 'overwrites previously set values with values loaded later' do
       config.shared.should == 'bar'
+    end
+
+    describe 'given a signature' do
+      let(:data) { { 'test' => { 'foo' => 'bar' }, 'signature' => 'signature' } }
+
+      before :each do
+        Dir.stubs(:[]).returns ['config/travis/signed.yml']
+        YAML.stubs(:load_file).with('config/travis/signed.yml').returns(data)
+      end
+
+      it 'loads the data' do
+        config[:foo].should == 'bar'
+      end
+
+      it 'verifies the signature' do
+        signature = stub
+        Travis::Config::File::Signature.expects(:new).returns(signature)
+        signature.expects(:verify).with('test' => { 'foo' => 'bar' }).returns(true)
+        config
+      end
     end
   end
 
