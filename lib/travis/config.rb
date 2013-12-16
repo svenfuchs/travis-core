@@ -16,7 +16,7 @@ module Travis
     autoload :Heroku, 'travis/config/heroku'
 
     class << self
-      def load(loaders)
+      def load(*loaders)
         data = loaders.inject({}) do |data, loader|
           loader = const_get(loader.to_s.camelize).new
           data.deep_merge(loader.load.deep_symbolize_keys)

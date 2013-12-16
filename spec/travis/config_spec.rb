@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'active_support/core_ext/hash/slice'
 
 describe Travis::Config do
-  let(:config) { Travis::Config.load([:files, :env, :heroku, :docker]) }
+  let(:config) { Travis::Config.load(:files, :env, :heroku, :docker) }
 
   describe 'Hashr behaviour' do
     after :each do
