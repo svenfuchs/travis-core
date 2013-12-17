@@ -11,7 +11,6 @@ module Travis
   class Config < Hashr
     autoload :Docker, 'travis/config/docker'
     autoload :Env,    'travis/config/env'
-    autoload :File,   'travis/config/file'
     autoload :Files,  'travis/config/files'
     autoload :Heroku, 'travis/config/heroku'
 
