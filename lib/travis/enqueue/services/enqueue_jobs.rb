@@ -73,9 +73,17 @@ module Travis
 
           def publish(job)
             Metriks.timer('enqueue.publish_job').time do
-              payload = Travis::Api.data(job, for: 'worker', type: 'Job::Test', version: 'v0')
+              payload = worker_payload(job)
               publisher(job.queue).publish(payload, properties: { type: payload['type'] })
             end
+          end
+
+          def worker_payload(job)
+            full_payload = Travis::Api.data(job, for: 'worker', type: 'Job::Test', version: 'v0')
+            if defined? Travis::Build
+              full_payload['script'] = Travis::Build.script(data, logs: { build: false, state: true }).compile
+            end
+            full_payload
           end
 
           def jobs
