@@ -81,7 +81,7 @@ module Travis
           def worker_payload(job)
             full_payload = Travis::Api.data(job, for: 'worker', type: 'Job::Test', version: 'v0')
             if defined? Travis::Build
-              full_payload['script'] = Travis::Build.script(data, logs: { build: false, state: true }).compile
+              full_payload['script'] = Travis::Build.script(full_payload, logs: { build: false, state: true }).compile
             end
             full_payload
           end
