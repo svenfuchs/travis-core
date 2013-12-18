@@ -1,3 +1,6 @@
+require 'travis/addons/github_status/instruments'
+require 'travis/task'
+
 module Travis
   module Addons
     module GithubStatus

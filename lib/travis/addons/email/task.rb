@@ -1,4 +1,7 @@
 require 'mail'
+require 'travis/addons/email/instruments'
+require 'travis/addons/email/mailer/build'
+require 'travis/task'
 
 module Travis
   module Addons

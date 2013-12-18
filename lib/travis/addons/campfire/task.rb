@@ -1,3 +1,8 @@
+require 'multi_json'
+require 'travis/addons/campfire/instruments'
+require 'travis/addons/util/template'
+require 'travis/task'
+
 module Travis
   module Addons
     module Campfire

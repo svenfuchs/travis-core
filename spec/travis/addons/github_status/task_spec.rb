@@ -55,10 +55,7 @@ describe Travis::Addons::GithubStatus::Task do
   describe 'logging' do
     it 'warns about a failed request' do
       GH.stubs(:post).raises(GH::Error.new(nil))
-      expect {
-        run
-      }.to raise_error
-      io.string.should include('[task]')
+      expect { run }.to raise_error
       io.string.should include('Could not update')
       io.string.should include('error:')
     end

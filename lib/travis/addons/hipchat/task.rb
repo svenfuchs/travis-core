@@ -1,3 +1,6 @@
+require 'travis/addons/hipchat/instruments'
+require 'travis/task'
+
 module Travis
   module Addons
     module Hipchat

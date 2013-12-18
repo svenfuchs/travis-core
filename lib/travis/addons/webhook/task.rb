@@ -1,3 +1,6 @@
+require 'travis/addons/webhook/instruments'
+require 'travis/task'
+
 module Travis
   module Addons
     module Webhook

@@ -1,4 +1,6 @@
+require 'hashr'
 require 'action_mailer'
+require 'travis/addons/email/mailer/helpers'
 
 module Travis
   module Addons

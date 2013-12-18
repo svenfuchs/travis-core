@@ -1,3 +1,6 @@
+require 'travis/addons/irc/instruments'
+require 'travis/task'
+
 module Travis
   module Addons
     module Irc

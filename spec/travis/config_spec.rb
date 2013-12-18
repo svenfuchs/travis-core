@@ -144,26 +144,6 @@ describe Travis::Config do
     it 'overwrites previously set values with values loaded later' do
       config.shared.should == 'bar'
     end
-
-    describe 'given a signature' do
-      let(:data) { { 'test' => { 'foo' => 'bar' }, 'signature' => 'signature' } }
-
-      before :each do
-        Dir.stubs(:[]).returns ['config/travis/signed.yml']
-        YAML.stubs(:load_file).with('config/travis/signed.yml').returns(data)
-      end
-
-      it 'loads the data' do
-        config[:foo].should == 'bar'
-      end
-
-      it 'verifies the signature' do
-        signature = stub
-        Travis::Config::File::Signature.expects(:new).returns(signature)
-        signature.expects(:verify).with('test' => { 'foo' => 'bar' }).returns(true)
-        config
-      end
-    end
   end
 
   describe 'loads docker-style env vars' do

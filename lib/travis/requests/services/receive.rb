@@ -1,4 +1,7 @@
 require 'gh'
+require 'travis/services/base'
+require 'travis/model/request/approval'
+require 'travis/notification/instrument'
 
 module Travis
   module Requests

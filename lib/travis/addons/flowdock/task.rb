@@ -1,3 +1,6 @@
+require 'travis/addons/flowdock/instruments'
+require 'travis/task'
+
 module Travis
   module Addons
     module Flowdock
