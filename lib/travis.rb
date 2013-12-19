@@ -1,6 +1,7 @@
-require 'travis/support'
-require 'travis_core/version'
 require 'pusher'
+require 'travis/support'
+require 'travis/support/database'
+require 'travis_core/version'
 require 'travis/redis_pool'
 
 # travis-core holds the central parts of the model layer used in both travis-ci
