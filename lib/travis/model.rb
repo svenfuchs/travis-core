@@ -8,7 +8,10 @@ module Travis
   class Model < ActiveRecord::Base
     require 'travis/model/account'
     require 'travis/model/broadcast'
+    require 'travis/model/branch'
     require 'travis/model/build'
+    require 'travis/model/builds_branch'
+    require 'travis/model/builds_tag'
     require 'travis/model/commit'
     require 'travis/model/email'
     require 'travis/model/encrypted_column'
@@ -22,6 +25,7 @@ module Travis
     require 'travis/model/request'
     require 'travis/model/ssl_key'
     require 'travis/model/token'
+    require 'travis/model/tag'
     require 'travis/model/user'
     require 'travis/model/url'
 
