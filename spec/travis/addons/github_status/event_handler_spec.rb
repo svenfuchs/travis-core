@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Travis::Addons::GithubStatus::EventHandler do
-  include Travis::Testing::Stubs
+  include Travis::Testing::Stubs, Support::ActiveRecord
 
   let(:subject) { Travis::Addons::GithubStatus::EventHandler }
   let(:payload) { Travis::Api.data(build, for: 'event', version: 'v0') }

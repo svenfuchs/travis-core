@@ -19,14 +19,35 @@ module Travis
         private
 
           def token
+            build_committer_token || admin_token || push_access_token
+          end
+
+          def build_committer_token
+            build_committer.try(:github_oauth_token)
+          end
+
+          def admin_token
             admin.try(:github_oauth_token)
           rescue Travis::AdminMissing => error
             Travis.logger.error error.message
             nil
           end
 
+          def push_access_token
+            push_access_user.try(:github_oauth_token)
+          end
+
+          def build_committer
+            user = User.with_email(object.commit.committer_email)
+            user if user && user.permission?(repository_id: object.repository.id, push: true)
+          end
+
           def admin
             @admin ||= Travis.run_service(:find_admin, repository: object.repository)
+          end
+
+          def push_access_user
+            User.with_github_token.with_permissions(repository_id: object.repository.id, push: true).first
           end
 
           Instruments::EventHandler.attach_to(self)
