@@ -91,6 +91,13 @@ describe Travis::Addons::Email::EventHandler do
         handler.recipients.should contain_recipients(recipients)
       end
 
+      it 'removes opted out emails' do
+        Travis::Mailer::Optout.stubs(:opted_out?).with('doe@example.com').returns(true)
+        Travis::Mailer::Optout.stubs(:opted_out?).with('recipient-1@email.com').returns(false)
+        build.stubs(config: { notifications: { recipients: %w(doe@example.com recipient-1@email.com) } })
+        handler.recipients.should contain_recipients('recipient-1@email.com')
+        handler.recipients.should_not contain_recipients('doe@example.com')
+      end
     end
 
     context 'when commit is on non-default branch' do

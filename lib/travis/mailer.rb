@@ -1,5 +1,6 @@
 require 'action_mailer'
 require 'i18n'
+require 'travis/mailer/optout'
 
 module Travis
   module Mailer

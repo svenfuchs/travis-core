@@ -21,7 +21,9 @@ module Travis
             recipients = config.notification_values(:email, :recipients)
             recipients = config.notifications[:recipients] if recipients.blank? # TODO deprecate recipients
             recipients = default_recipients                if recipients.blank?
-            Array(recipients).join(',').split(',').map(&:strip).select(&:present?).uniq
+            Array(recipients).join(',').split(',').map(&:strip).select(&:present?).uniq.reject { |address|
+              Travis::Mailer::Optout.opted_out?(address)
+            }
           end
         end
 
