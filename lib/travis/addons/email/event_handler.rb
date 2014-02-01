@@ -21,9 +21,8 @@ module Travis
             recipients = config.notification_values(:email, :recipients)
             recipients = config.notifications[:recipients] if recipients.blank? # TODO deprecate recipients
             recipients = default_recipients                if recipients.blank?
-            Array(recipients).join(',').split(',').map(&:strip).select(&:present?).uniq.reject { |address|
-              Travis::Mailer::Optout.opted_out?(address)
-            }
+
+            remove_opted_out(normalize_recipients(recipients))
           end
         end
 
@@ -45,6 +44,14 @@ module Travis
               r == object.commit.author_email or
               r == object.commit.committer_email
             end
+          end
+
+          def normalize_recipients(recipients)
+            Array(recipients).join(',').split(',').map(&:strip).select(&:present?).uniq
+          end
+
+          def remove_opted_out(recipients)
+            recipients.reject { |address| Travis::Mailer::Optout.opted_out?(address) }
           end
 
           Instruments::EventHandler.attach_to(self)
