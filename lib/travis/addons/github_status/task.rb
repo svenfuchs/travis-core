@@ -30,9 +30,23 @@ module Travis
 
           def process
             info("Update commit status on #{url} to #{state}")
-            authenticated do
+
+            params[:tokens].each do |token|
+              result = process_with_token(token)
+              return result if result
+            end
+
+            message = %Q{\
+              Could not update the PR status on #{GH.api_host + url}
+            }.gsub(/^\s+/, "")
+          end
+
+          def process_with_token(token)
+            authenticated(token) do
               GH.post(url, :state => state, :description => description, :target_url => target_url)
             end
+          rescue GH::Error(:response_status => 401)
+            nil
           rescue GH::Error => e
             message = "Could not update the PR status on #{GH.api_host + url} (#{e.message})."
             error message
@@ -55,12 +69,12 @@ module Travis
             DESCRIPTIONS[state]
           end
 
-          def authenticated(&block)
-            GH.with(http_options, &block)
+          def authenticated(token, &block)
+            GH.with(http_options(token), &block)
           end
 
-          def http_options
-            super.merge(token: params[:token])
+          def http_options(token)
+            super().merge(token: token)
           end
 
           Instruments::Task.attach_to(self)

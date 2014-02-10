@@ -43,28 +43,43 @@ describe Travis::Addons::GithubStatus::EventHandler do
     it 'triggers a task if the build is a push request and has started' do
       build.stubs(:pull_request?).returns(false)
       @event = 'build:started'
-      task.expects(:run).with(:github_status, payload, token: 'token')
+      task.expects(:run).with(:github_status, payload, tokens: ['token'])
       notify
     end
 
     it 'triggers a task if the build is a pull request and has started' do
       build.stubs(:pull_request?).returns(true)
       @event = 'build:started'
-      task.expects(:run).with(:github_status, payload, token: 'token')
+      task.expects(:run).with(:github_status, payload, tokens: ['token'])
       notify
     end
 
     it 'triggers a task if the build is a push request and has finished' do
       build.stubs(:pull_request?).returns(false)
       @event = 'build:finished'
-      task.expects(:run).with(:github_status, payload, token: 'token')
+      task.expects(:run).with(:github_status, payload, tokens: ['token'])
       notify
     end
 
     it 'triggers a task if the build is a pull request and has finished' do
       build.stubs(:pull_request?).returns(true)
       @event = 'build:finished'
-      task.expects(:run).with(:github_status, payload, token: 'token')
+      task.expects(:run).with(:github_status, payload, tokens: ['token'])
+      notify
+    end
+
+    it 'gets the token for the build committer' do
+      committer = stub_user(github_oauth_token: 'commit-token')
+      committer.stubs(:permission?).with(repository_id: repository.id, push: true).returns(true)
+      User.stubs(:with_email).with(commit.committer_email).returns(committer)
+      task.expects(:run).with { |_, _, options| options[:tokens].include?('commit-token') }
+      notify
+    end
+
+    it 'gets the token for someone with push access' do
+      push_user = stub_user(github_oauth_token: 'push-token')
+      User.stubs(:with_github_token).returns(stub(with_permissions: stub(all: [push_user])))
+      task.expects(:run).with { |_, _, options| options[:tokens].include?('push-token') }
       notify
     end
   end

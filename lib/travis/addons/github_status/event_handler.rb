@@ -9,17 +9,21 @@ module Travis
         EVENTS = /build:(started|finished)/
 
         def handle?
-          token.present?
+          tokens.any?
         end
 
         def handle
-          Travis::Addons::GithubStatus::Task.run(:github_status, payload, token: token)
+          Travis::Addons::GithubStatus::Task.run(:github_status, payload, tokens: tokens)
         end
 
         private
 
-          def token
-            build_committer_token || admin_token || push_access_token
+          def tokens
+            @tokens ||= [
+              build_committer_token,
+              admin_token,
+              push_access_tokens
+            ].flatten.compact
           end
 
           def build_committer_token
@@ -33,8 +37,8 @@ module Travis
             nil
           end
 
-          def push_access_token
-            push_access_user.try(:github_oauth_token)
+          def push_access_tokens
+            push_access_users.map { |user| user.try(:github_oauth_token) }.compact
           end
 
           def build_committer
@@ -46,8 +50,8 @@ module Travis
             @admin ||= Travis.run_service(:find_admin, repository: object.repository)
           end
 
-          def push_access_user
-            User.with_github_token.with_permissions(repository_id: object.repository.id, push: true).first
+          def push_access_users
+            User.with_github_token.with_permissions(repository_id: object.repository.id, push: true).all
           end
 
           Instruments::EventHandler.attach_to(self)
