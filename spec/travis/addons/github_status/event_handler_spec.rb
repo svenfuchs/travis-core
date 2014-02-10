@@ -1,10 +1,15 @@
 require 'spec_helper'
 
 describe Travis::Addons::GithubStatus::EventHandler do
-  include Travis::Testing::Stubs, Support::ActiveRecord
+  include Travis::Testing::Stubs
 
   let(:subject) { Travis::Addons::GithubStatus::EventHandler }
   let(:payload) { Travis::Api.data(build, for: 'event', version: 'v0') }
+
+  before do
+    User.stubs(:with_email).returns(nil)
+    User.stubs(:with_github_token).returns(stub(with_permissions: stub(all: [])))
+  end
 
   describe 'subscription' do
     let(:handler) { subject.any_instance }
