@@ -14,7 +14,7 @@ describe Travis::Addons::GithubStatus::Task do
   end
 
   def run
-    subject.new(payload, tokens: ['12345', '67890']).run
+    subject.new(payload, tokens: { 'svenfuchs' => '12345', 'jdoe' => '67890' }).run
   end
 
   it 'posts status info for a created build' do

@@ -19,26 +19,15 @@ module Travis
         private
 
           def tokens
-            @tokens ||= [
-              build_committer_token,
-              admin_token,
-              push_access_tokens
+            @tokens ||= users.map { |user| { user.login => user.github_oauth_token } }.inject(:merge)
+          end
+
+          def users
+            @users ||= [
+              build_committer,
+              admin,
+              users_with_push_access,
             ].flatten.compact
-          end
-
-          def build_committer_token
-            build_committer.try(:github_oauth_token)
-          end
-
-          def admin_token
-            admin.try(:github_oauth_token)
-          rescue Travis::AdminMissing => error
-            Travis.logger.error error.message
-            nil
-          end
-
-          def push_access_tokens
-            push_access_users.map { |user| user.try(:github_oauth_token) }.compact
           end
 
           def build_committer
@@ -48,9 +37,11 @@ module Travis
 
           def admin
             @admin ||= Travis.run_service(:find_admin, repository: object.repository)
+          rescue Travis::AdminMissing
+            nil
           end
 
-          def push_access_users
+          def users_with_push_access
             User.with_github_token.with_permissions(repository_id: object.repository.id, push: true).all
           end
 

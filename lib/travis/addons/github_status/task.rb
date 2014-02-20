@@ -31,14 +31,14 @@ module Travis
           def process
             info("Update commit status on #{url} to #{state}")
 
-            params[:tokens].each do |token|
-              result = process_with_token(token)
-              return result if result
+            params[:tokens].each do |username, token|
+              if process_with_token(token)
+                return
+              else
+                message = "#{username}'s GitHub token couldn't be used to update PR status on #{GH.api_host + url}."
+                error message
+              end
             end
-
-            message = %Q{\
-              Could not update the PR status on #{GH.api_host + url}
-            }.gsub(/^\s+/, "")
           end
 
           def process_with_token(token)
