@@ -36,6 +36,7 @@ module Travis
     end
   end
 
+  require 'travis/model'
   require 'travis/task'
   require 'travis/event'
   require 'travis/addons'
