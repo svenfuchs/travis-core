@@ -9,6 +9,10 @@ module Travis
         EVENTS = /build:(started|finished)/
 
         def handle?
+          unless tokens.any?
+            error "No GitHub OAuth tokens found for #{object.repository.slugs}"
+          end
+
           tokens.any?
         end
 
