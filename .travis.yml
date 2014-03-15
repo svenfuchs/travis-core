@@ -11,7 +11,7 @@ addons:
 rvm:
   - 2.1.0
 before_script:
-  - sudo service mysql stop
+  # - sudo service mysql stop
   - redis-server /etc/redis/redis.conf
   - redis-cli config set save ""
   - 'RAILS_ENV=test rake db:create db:structure:load --trace'
